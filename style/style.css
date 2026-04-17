@@ -1,0 +1,269 @@
+:root {
+    /* BACKGROUND */
+    --bg-app: #120a1a;
+
+    /* SURFACES */
+    --surface-1: #1a1026;   /* панели */
+    --surface-2: #241538;   /* карточки / sidebar */
+
+    /* INPUT */
+    --input-bg: #2d1c45;
+    --input-hover: #3a255a;
+
+    /* ACCENT */
+    --accent: #c84cff;
+    --accent-hover: #a93be0;
+
+    /* BORDER */
+    --border: #6a4ba3;
+
+    /* TEXT */
+    --text-primary: #f3eaff;
+    --text-secondary: #cbb6e6;
+    --text-muted: #9b86b3;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+
+    font-size: 16px;
+    font-family: roboto;
+
+}
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin: 0;
+}
+
+.page {
+    background-color: var(--bg-app);
+}
+
+.page--center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.page--full {
+    height: 100vh;
+}
+
+.registration {
+    max-width: 400px;
+    width: 100%;
+
+    padding: 40px 30px;
+
+    color: var(--text-primary);
+
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+
+    border: 1px solid var(--border);
+    border-radius: 20px;
+
+    background-color: var(--surface-2);
+}
+
+.registration__title {
+    font-size: 2.2em;
+}
+
+.registration__login {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.registration__login label {
+    font-size: 1.2em;
+
+    color: var(--text-secondary);
+}
+
+.registration__login input {
+    padding: 8px 5px;
+
+    color: var(--text-primary);
+    
+    font-size: 1.4em;
+    
+    border: 1px solid var(--border);
+    border-radius: 5px;
+
+    background-color: var(--input-bg);
+
+
+    transition: background-color .2s ease;
+}
+
+.registration__login:hover input {
+    background-color: var(--input-hover);
+}
+
+.registration__btn {
+    text-align: center;
+    
+    font-size: 1em;
+    font-family: inherit;
+
+    padding: 10px 5px;
+
+    border: 1px solid var(--border);
+    border-radius: 5px;
+
+    background-color: var(--accent);
+    color: white;
+
+    transition: background-color .2s ease;
+}
+
+.registration__btn:hover {
+    background: var(--accent-hover);
+    cursor: pointer;
+}
+
+/* MESSENGER */
+
+#messenger-page {
+    display: none;
+}
+
+.messenger__page {
+    width: 100vw;
+    height: 100vh;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.messenger {
+    width: 100%;
+    height: 100%;
+
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    grid-template-rows: 1fr auto;
+    grid-template-areas: 
+    "users chat"
+    "users chat";
+
+    border: 3px solid var(--border);
+
+    background-color: var(--surface-1);
+}
+
+.messenger__users {
+    grid-area: users;
+
+    border-right: 3px solid var(--border);
+
+    background-color: var(--surface-2);
+}
+
+.messenger__chat {
+    grid-area: chat;
+    
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+
+    background-color: var(--surface-1);
+}
+
+.chat__input {
+    width: 100%;
+
+    display: flex;
+    gap: 10px;
+    justify-content: space-between;
+
+    padding: 10px;
+    
+    border-top: 3px solid var(--border);
+
+    background-color: var(--surface-2);
+}
+
+.chat__input input {
+    padding: 10px;
+    width: 100%;
+
+    border: 1px dashed var(--border);
+    
+    font-size: 1em;
+
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+
+    transition: background-color .2s ease;
+}
+
+.chat__input input:hover {
+    border: 1px solid var(--border);
+    background-color: var(--input-hover);
+}
+
+.chat__input input:focus {
+    outline: none;
+    border: 1px solid var(--border);
+}
+
+.chat__input button {
+    height: 100%;
+
+    background-color: var(--accent);
+    color: white;
+    
+    border: 1px solid var(--border);
+    border-radius: 10px;
+
+    transition: background-color .2s ease;
+}
+
+.chat__input button:hover {
+    background-color: var(--accent-hover);
+
+    color: white;
+
+    cursor: pointer;
+}
+
+/* СООБЩЕНИЕ */
+
+.chat__field {
+    padding: 20px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 35px
+}
+
+.message {
+    display: flex;
+    gap: 5px;
+}
+
+.message__author {
+    color: var(--text-primary);
+}
+
+.message__text {
+    color: var(--text-secondary)
+}
