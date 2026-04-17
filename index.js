@@ -3,32 +3,12 @@ const login = document.getElementById("login");
 const registrationBtn = document.getElementById("registration__btn");
 const messengerPage = document.getElementById("messenger-page");
 
-
-// if (localStorage.userName) {
-//     showMessenger();
-// } else {
-//     showRegistration();
-// }
-
-// let userName = localStorage.userName;
-
-// function showMessenger() {
-//     registrationPage.style.display = "none";
-//     messengerPage.style.display = "block";
-// }
-
-// function showRegistration() {
-//     registrationPage.style.display = "flex";
-//     messengerPage.style.display = "none";
-// }
-
 registrationPage.addEventListener("submit", (event) => {
     event.preventDefault();
     
     if (validateLogin(login)) {
         userName = login.value;
 
-        localStorage.setItem("userName", userName);
         registrationPage.style.display = "none";
         messengerPage.style.display = "block";
     }
@@ -49,8 +29,14 @@ chatInput.addEventListener("submit", (event) => {
 
     if (!value) return;
 
+    window.api.sendMessage(`${userName}: ${value}`);
+
     createMessage(messageInput.value, userName);
     messageInput.value = "";
+});
+
+window.api.onMessage((msg) => {
+    createMessage(msg, "remote");
 });
 
 function createMessage(value, userName) {
