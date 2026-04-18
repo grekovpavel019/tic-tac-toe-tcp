@@ -1,9 +1,12 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require("path");
 const net = require("net");
+const { create } = require('domain');
 
 let client;
 let mainWindow;
+
+app.setPath("userData", "C:\\electron_test");
 
 ipcMain.on("tcp-connect", (event, options) => {
     const { userName } = options;
@@ -58,13 +61,5 @@ const createWindow = () => {
 
 
 app.whenReady().then(() => {
-    app.commandLine.appendSwitch('disable-gpu-cache');
-    app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors');
-    
-    app.setPath(
-        "userData",
-        path.join(app.getPath("temp"), "my-app-dev")
-    );
-
     createWindow();
 });
