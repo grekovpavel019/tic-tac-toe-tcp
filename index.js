@@ -3,14 +3,33 @@ const login = document.getElementById("login");
 const registrationBtn = document.getElementById("registration__btn");
 const messengerPage = document.getElementById("messenger-page");
 
+let userName;
+
 registrationPage.addEventListener("submit", (event) => {
     event.preventDefault();
     
     if (validateLogin(login)) {
         userName = login.value;
 
-        registrationPage.style.display = "none";
-        messengerPage.style.display = "block";
+        window.api.connect({
+            userName
+        });
+    }
+
+});
+
+window.api.onMessage((msg) => {
+    switch(msg.type) {
+        case "LOGIN_SUCCESS": {
+            registrationPage.style.display = "none";
+            messengerPage.style.display = "block";
+            break;
+        }
+
+        case "LOGIN_ERROR": {
+            console.log(msg.reason);
+            break;
+        }
     }
 });
 
@@ -29,15 +48,15 @@ chatInput.addEventListener("submit", (event) => {
 
     if (!value) return;
 
-    window.api.sendMessage(`${userName}: ${value}`);
+    // window.api.sendMessage(`${userName}: ${value}`);
 
     createMessage(messageInput.value, userName);
     messageInput.value = "";
 });
 
-window.api.onMessage((msg) => {
-    createMessage(msg, "remote");
-});
+// window.api.onMessage((msg) => {
+//     createMessage(msg, "remote");
+// });
 
 function createMessage(value, userName) {
     const message = document.createElement("div");
