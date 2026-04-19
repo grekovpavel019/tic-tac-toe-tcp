@@ -15,7 +15,7 @@ ipcMain.on("tcp-connect", (event, options) => {
         host: "127.0.0.1",
         port: 4000
     });
-
+    
     client.on("connect", () => {
         const message = JSON.stringify({
             type: "CONNECT",

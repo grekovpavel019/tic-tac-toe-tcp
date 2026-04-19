@@ -3,7 +3,6 @@ const net = require("net");
 const clients = new Map();
 
 const server = net.createServer((socket) => {
-    console.log("Кто-то подключился");
 
     let buffer = '';
     socket.on("data", (data) => {
@@ -19,8 +18,6 @@ const server = net.createServer((socket) => {
 
             switch (message.type) {
                 case "CONNECT": {
-                    console.log("Подключился вот этот пидорас: " + socket.remotePort);
-
                     if (clients.has(message.userName)) {
 
                         socket.write(JSON.stringify({
@@ -29,6 +26,8 @@ const server = net.createServer((socket) => {
                         }) + "\n")
                         return;
                     }
+
+                    console.log(`Клиент ${socket.remotePort} присоединился под зарегестрировался под именем ${message.userName}`);
 
                     socket.write(JSON.stringify({
                         type: "LOGIN_SUCCESS"
