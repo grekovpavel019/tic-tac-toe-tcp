@@ -1,7 +1,7 @@
 const registrationPage = document.getElementById("registration-page");
 const login = document.getElementById("login");
 const registrationBtn = document.getElementById("registration__btn");
-const messengerPage = document.getElementById("messenger-page");
+const gamePage = document.getElementById("game-page");
 
 let userName;
 
@@ -16,13 +16,22 @@ registrationPage.addEventListener("submit", (event) => {
         });
     }
 
+    login.value = "";
+
+});
+
+const disconnectButton = document.getElementById("disconnect");
+disconnectButton.addEventListener("click", (event) => {
+    window.api.disconnect();
+    registrationPage.style.display = "flex";
+    gamePage.style.display = "none";
 });
 
 window.api.onMessage((msg) => {
     switch(msg.type) {
         case "LOGIN_SUCCESS": {
             registrationPage.style.display = "none";
-            messengerPage.style.display = "block";
+            gamePage.style.display = "block";
             break;
         }
 

@@ -5,6 +5,10 @@ contextBridge.exposeInMainWorld("api", {
         ipcRenderer.send("tcp-connect", options);
     },
 
+    disconnect: () => {
+        ipcRenderer.send("tcp-disconnect");
+    },
+
     sendMessage: (msg) => {
         ipcRenderer.send("tcp-send", msg);
     },

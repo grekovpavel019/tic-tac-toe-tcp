@@ -15,6 +15,8 @@ ipcMain.on("tcp-connect", (event, options) => {
         host: "127.0.0.1",
         port: 4000
     });
+
+    client.setNoDelay(true);
     
     client.on("connect", () => {
         const message = JSON.stringify({
@@ -23,25 +25,44 @@ ipcMain.on("tcp-connect", (event, options) => {
         });
 
         client.write(message + "\n");
-    })
-
+    });
+    
+    let buffer = "";
     client.on("data", (data) => {
-        const messages = data.toString().split("\n");
-
+        buffer += data.toString();
+        const messages = buffer.split("\n");
+        buffer = messages.pop();
+        
         messages.forEach((msg) => {
             if (!msg.trim()) return;
-
+            
             try {
                 const message = JSON.parse(msg);
                 mainWindow.webContents.send("tcp-message", message);
             } catch (e) {
                 console.log("Bad JSON: ", msg)
             }
-
-        })
+            
+        });
+    });
+    
+    client.on("close", () => { 
+        console.log("Соединение закрыто")
+        client = null;
+        console.log(client);
     });
 
+    client.on("error", (err) => { console.log(`Клиент отключился по причине: ${err}`); });
+
 }); 
+
+ipcMain.on("tcp-disconnect", (event) => {
+    if (!client)  return;
+    const message = JSON.stringify({
+        type: "DISCONNECT"
+    });
+    client.write(message + "\n"); 
+});
 
 const createWindow = () => {
     mainWindow = new BrowserWindow({
