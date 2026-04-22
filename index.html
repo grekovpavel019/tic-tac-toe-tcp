@@ -31,12 +31,19 @@
                     <h2>Комнаты</h2>
                     <div class="section__buttons">
                         <button class="room-interact-btn">↻</button>
-                        <button class="room-interact-btn">+ Создать</button>
+                        <button id="create-room" class="room-interact-btn">+ Создать</button>
                     </div>
                 </div>
 
-                <div class="sidebar__rooms">
-                    
+                <div id="room-list" class="sidebar__rooms">
+                    <div id="0" class="room-item">
+                        <h2 id="room__title">111</h2>
+                        <div class="room__meta">
+                            <span id="players" class="players">👥 1/2</span>
+                            <span id="spectators" class="spectators">👁 0</span>
+                            <span id="status" class="status">WAITING</span>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="disconnect">
@@ -45,14 +52,30 @@
 
             </div>
 
-            <div id="messenger__chat" class="messenger__chat">
-                <div id="chat__field" class="chat__field">
+            <div class="main-area">
+                <div id="no-room" class="no-room">
+                    <h2>Выберите комнату</h2>
+                    <p>Или создайте новую</p>
                 </div>
-                <form id="chat__input" class="chat__input">
-                    <input id="messageInput" type="text">
-                    <button id="messageSend" type="submit">Отправить</button>
-                </form>
+
+                <div id="room-content" class="room-content">
+
+                    <div id="game-area" class="game-area">
+                        
+                    </div>
+                    
+                    <div id="messenger__chat" class="messenger__chat">
+                        <div id="chat__field" class="chat__field">
+                        </div>
+                        <form id="chat__input" class="chat__input">
+                            <input id="messageInput" type="text">
+                            <button id="messageSend" type="submit">Отправить</button>
+                        </form>
+                    </div>
+
+                </div>
             </div>
+
         </div>
     </div>
 

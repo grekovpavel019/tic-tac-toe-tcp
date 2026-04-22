@@ -1,30 +1,30 @@
 const registrationPage = document.getElementById("registration-page");
 const login = document.getElementById("login");
-const registrationBtn = document.getElementById("registration__btn");
 const gamePage = document.getElementById("game-page");
 
+const chatInput = document.getElementById("chat__input");
+const chatField = document.getElementById("chat__field")
+const messageInput = document.getElementById("messageInput");
+
+const createRoomBtn = document.getElementById("create-room");
+const roomList = document.getElementById("room-list");
+
+const disconnectButton = document.getElementById("disconnect");
+
 let userName;
+
+// === РЕГИСТРАЦИЯ ===
 
 registrationPage.addEventListener("submit", (event) => {
     event.preventDefault();
     
     if (validateLogin(login)) {
         userName = login.value;
-
-        window.api.connect({
-            userName
-        });
+        window.api.connect({ userName });
     }
 
     login.value = "";
 
-});
-
-const disconnectButton = document.getElementById("disconnect");
-disconnectButton.addEventListener("click", (event) => {
-    window.api.disconnect();
-    registrationPage.style.display = "flex";
-    gamePage.style.display = "none";
 });
 
 window.api.onMessage((msg) => {
@@ -42,14 +42,28 @@ window.api.onMessage((msg) => {
     }
 });
 
-function validateLogin(login) {
-    const value = login.value.trim()
-    return value !== "";
-}
+// === ДИСКОННЕКТ ===
 
-const chatInput = document.getElementById("chat__input");
-const chatField = document.getElementById("chat__field")
-const messageInput = document.getElementById("messageInput");
+disconnectButton.addEventListener("click", (event) => {
+    window.api.disconnect();
+    registrationPage.style.display = "flex";
+    gamePage.style.display = "none";
+});
+
+// === Создание комнаты ===
+
+createRoomBtn.addEventListener("click", (event) => {
+    const roomItem = createRoom({
+        title: "NoName",
+        players: "1",
+        spectators: "0",
+        status: "WAITING"
+    });
+
+    roomList.append(roomItem);
+});
+
+// === СООБЩЕНИЯ В ЧАТЕ ===
 
 chatInput.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -67,6 +81,13 @@ chatInput.addEventListener("submit", (event) => {
 //     createMessage(msg, "remote");
 // });
 
+// === ХЭНДЛЕРЫ ===
+
+function validateLogin(login) {
+    const value = login.value.trim()
+    return value !== "";
+}
+
 function createMessage(value, userName) {
     const message = document.createElement("div");
     message.classList.add("message");
@@ -76,4 +97,35 @@ function createMessage(value, userName) {
     `;
     
     chatField.appendChild(message);
+}
+
+function createRoom({ title, players, spectators, status }) {
+    const room = document.createElement("div");
+    room.classList.add("room-item");
+    
+    const titleEL = document.createElement("h2");
+    titleEL.textContent = title;
+
+    const meta = document.createElement("div");
+    meta.classList.add("room__meta");
+
+    const playersEL = document.createElement("span");
+    playersEL.classList.add("players");
+    playersEL.textContent = `👥 ${players}/2`;
+    // playersEL.id = "players";
+
+    const spectatorsEL = document.createElement("span");
+    spectatorsEL.classList.add("spectators");
+    spectatorsEL.textContent = `👁 ${spectators}`;
+    // spectatorsEL.id = "spectators";
+
+    const statusEL = document.createElement("span");
+    statusEL.classList.add("status");
+    statusEL.textContent = `${status}`;
+    // statusEL.id = "status";
+
+    meta.append(playersEL, spectatorsEL, statusEL);
+    room.append(titleEL, meta)
+
+    return room;
 }
