@@ -13,8 +13,11 @@ const messageInput = document.getElementById("messageInput");
 const createRoomBtn = document.getElementById("create-room");
 const roomList = document.getElementById("room-list");
 const modalWin = document.getElementById("modal-bg");
+const roomNameInput = document.getElementById("room-name-input");
 const modalEntryBtn = document.querySelector(".modal__entry");
 const modalCancelBtn = document.querySelector(".modal__cancel");
+
+const updateRoomsList = document.getElementById("update-list-rooms");
 
 const disconnectButton = document.getElementById("disconnect");
 
@@ -24,32 +27,51 @@ let inRoom = false;
 
 // === РЕГИСТРАЦИЯ ===
 
-// registrationPage.addEventListener("submit", (event) => {
-//     event.preventDefault();
+registrationPage.addEventListener("submit", (event) => {
+    event.preventDefault();
     
-//     if (validateLogin(login)) {
-//         userName = login.value;
-//         window.api.connect({ userName });
-//     }
+    if (validateLogin(login)) {
+        userName = login.value;
+        window.api.connect({ userName });
+    }
 
-//     login.value = "";
+    login.value = "";
 
-// });
+});
 
-// window.api.onMessage((msg) => {
-//     switch(msg.type) {
-//         case "LOGIN_SUCCESS": {
-//             registrationPage.style.display = "none";
-//             gamePage.style.display = "block";
-//             break;
-//         }
+window.api.onMessage((msg) => {
+    switch(msg.type) {
+        case "LOGIN_SUCCESS": {
+            registrationPage.style.display = "none";
+            gamePage.style.display = "block";
+            break;
+        }
 
-//         case "LOGIN_ERROR": {
-//             console.log(msg.reason);
-//             break;
-//         }
-//     }
-// });
+        case "LOGIN_ERROR": {
+            console.log(msg.reason);
+            break;
+        }
+
+        case "ROOM_CREATED": {
+            const room = msg.payload.room;
+
+            const roomItem = createRoom({
+                title: room.title,
+                players: room.players,
+                spectators: room.spectators,
+                status: room.status
+            });
+
+            roomContent.style.display = "flex";
+            noRoom.style.display = "none";
+
+            roomItem.dataset.id = room.id;
+
+            roomList.append(roomItem);
+            break;
+        }
+    }
+});
 
 // === ДИСКОННЕКТ ===
 
@@ -61,34 +83,40 @@ disconnectButton.addEventListener("click", (event) => {
 
 // === Создание комнаты ===
 
+// обработка кнопки нажатия на создание комнаты
 createRoomBtn.addEventListener("click", (event) => {
+    if (inRoom) return;                                                 // ДОРАБОТАТЬ ❗❗❗
+
     modalWin.style.display = "flex";
 });
 
-modalEntryBtn.addEventListener("click", (event) => {
-    const roomNameInput = document.getElementById("room-name-input");
-    if (!roomNameInput.value) return;
+// кнопка обновления комнат
+updateRoomsList.addEventListener("click", (event) => {
 
-    inRoom = true;
-
-    roomContent.style.display = "flex";
-    noRoom.style.display = "none";
-
-    const roomItem = createRoom({
-        title: roomNameInput.value,
-        players: "1",
-        spectators: "0",
-        status: "WAITING"
-    });
-
-    roomList.append(roomItem);
-
-    roomNameInput.value = "";
-    modalWin.style.display = "none";
 });
 
+// если создаем комнату
+modalEntryBtn.addEventListener("click", (event) => {
+    const value = roomNameInput.value;
+    if (!value) return;
+
+    // inRoom = true;
+
+    window.api.send({
+        type: "CREATE_ROOM",
+        payload: {
+            title: value
+        }
+    });
+    
+    modalWin.style.display = "none";
+    roomNameInput.value = "";
+});
+
+// отмена создания комнаты
 modalCancelBtn.addEventListener("click", (event) => {
     modalWin.style.display = "none";
+    roomNameInput.value = "";
 })
 
 // === СООБЩЕНИЯ В ЧАТЕ ===

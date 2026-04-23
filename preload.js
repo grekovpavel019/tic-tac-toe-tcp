@@ -9,7 +9,7 @@ contextBridge.exposeInMainWorld("api", {
         ipcRenderer.send("tcp-disconnect");
     },
 
-    sendMessage: (msg) => {
+    send: (msg) => {
         ipcRenderer.send("tcp-send", msg);
     },
 

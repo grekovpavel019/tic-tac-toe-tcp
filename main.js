@@ -56,6 +56,12 @@ ipcMain.on("tcp-connect", (event, options) => {
 
 }); 
 
+ipcMain.on("tcp-send", (event, msg) => {
+    if (!client) return;
+
+    client.write(JSON.stringify(msg) + "\n");
+});
+
 ipcMain.on("tcp-disconnect", (event) => {
     if (!client)  return;
     const message = JSON.stringify({

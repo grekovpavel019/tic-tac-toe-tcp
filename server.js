@@ -1,6 +1,8 @@
 const net = require("net");
 
 const clients = new Map();
+const rooms = new Map();
+let roomID = 0;
 
 const server = net.createServer((socket) => {
 
@@ -44,6 +46,31 @@ const server = net.createServer((socket) => {
                         socket.end();
                         break;
                     }
+
+                    case "CREATE_ROOM": {
+                        const { title } = message.payload;
+
+                        const id = ++roomID;
+
+                        const room =  {
+                            id,
+                            title,
+                            players: 1,
+                            spectators: 0,
+                            status: "WAITING"
+                        };
+
+                        rooms.set(id, room);
+
+                        broadcast({
+                            type: "ROOM_CREATED",
+                            payload: {
+                                room
+                            }
+                        });
+
+                        break;
+                    }
                 }
 
             } catch (e) {
@@ -67,6 +94,14 @@ function handleDisconnect(socket, err) {
     if (clients.has(userName)) {
         clients.delete(userName);
         console.log(`Клиент ${userName} отключился по причине: ${err ? err : "Конец соединения"}`)
+    }
+}
+
+function broadcast(msg) {
+    const data = JSON.stringify(msg) + "\n";
+
+    for (const client of clients.values()) {
+        client.write(data);
     }
 }
 

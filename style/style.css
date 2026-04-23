@@ -57,6 +57,18 @@ p {
     margin: 0;
 }
 
+#room-content {
+    display: none;
+}
+
+#modal-bg {
+    display: none;
+}
+
+#game-page {
+    display: none;
+}
+
 .page {
     background-color: var(--bg-app);
 }
@@ -294,10 +306,6 @@ p {
     border-radius: 5px;
 }
 
-#modal-bg {
-    display: none;
-}
-
 .modal-bg {    
     position: fixed;
 
@@ -435,10 +443,6 @@ p {
     font-size: 1.2em;
 
     color: var(--text-secondary);
-}
-
-#room-content {
-    display: none;
 }
 
 .room-content {
