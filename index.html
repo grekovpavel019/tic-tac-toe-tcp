@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="style/style.css">
 </head>
 <body>
-    <div id="registration-page" class="page page--center">
+    <!-- <div id="registration-page" class="page page--center">
         <form action="" class="registration">
             <h1 class="registration__title">Регистрация</h1>
             <div class="registration__login">
@@ -16,7 +16,7 @@
             </div>
             <button id="registration__btn" class="registration__btn">Отправить</button>
         </form>
-    </div>
+    </div> -->
 
     <div id="game-page" class="page page--full">
         <div class="game">
@@ -36,14 +36,7 @@
                 </div>
 
                 <div id="room-list" class="sidebar__rooms">
-                    <div id="0" class="room-item">
-                        <h2 id="room__title">111</h2>
-                        <div class="room__meta">
-                            <span id="players" class="players">👥 1/2</span>
-                            <span id="spectators" class="spectators">👁 0</span>
-                            <span id="status" class="status">WAITING</span>
-                        </div>
-                    </div>
+                    
                 </div>
 
                 <div class="disconnect">
@@ -76,6 +69,17 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    <div id="modal-bg" class="modal-bg">
+        <div class="modal">
+            <h2 class="modal__header">Введите название комнаты</h2>
+            <input id="room-name-input" class="modal__input" type="text">
+            <div class="modal__actions">
+                <button class="modal__entry">Войти</button>
+                <button class="modal__cancel">Отменить</button>
+            </div>
         </div>
     </div>
 

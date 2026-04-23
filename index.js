@@ -1,6 +1,10 @@
 const registrationPage = document.getElementById("registration-page");
 const login = document.getElementById("login");
+
 const gamePage = document.getElementById("game-page");
+
+const noRoom = document.getElementById("no-room");
+const roomContent = document.getElementById("room-content");
 
 const chatInput = document.getElementById("chat__input");
 const chatField = document.getElementById("chat__field")
@@ -8,39 +12,44 @@ const messageInput = document.getElementById("messageInput");
 
 const createRoomBtn = document.getElementById("create-room");
 const roomList = document.getElementById("room-list");
+const modalWin = document.getElementById("modal-bg");
+const modalEntryBtn = document.querySelector(".modal__entry");
+const modalCancelBtn = document.querySelector(".modal__cancel");
 
 const disconnectButton = document.getElementById("disconnect");
 
 let userName;
 
+let inRoom = false;
+
 // === РЕГИСТРАЦИЯ ===
 
-registrationPage.addEventListener("submit", (event) => {
-    event.preventDefault();
+// registrationPage.addEventListener("submit", (event) => {
+//     event.preventDefault();
     
-    if (validateLogin(login)) {
-        userName = login.value;
-        window.api.connect({ userName });
-    }
+//     if (validateLogin(login)) {
+//         userName = login.value;
+//         window.api.connect({ userName });
+//     }
 
-    login.value = "";
+//     login.value = "";
 
-});
+// });
 
-window.api.onMessage((msg) => {
-    switch(msg.type) {
-        case "LOGIN_SUCCESS": {
-            registrationPage.style.display = "none";
-            gamePage.style.display = "block";
-            break;
-        }
+// window.api.onMessage((msg) => {
+//     switch(msg.type) {
+//         case "LOGIN_SUCCESS": {
+//             registrationPage.style.display = "none";
+//             gamePage.style.display = "block";
+//             break;
+//         }
 
-        case "LOGIN_ERROR": {
-            console.log(msg.reason);
-            break;
-        }
-    }
-});
+//         case "LOGIN_ERROR": {
+//             console.log(msg.reason);
+//             break;
+//         }
+//     }
+// });
 
 // === ДИСКОННЕКТ ===
 
@@ -53,15 +62,34 @@ disconnectButton.addEventListener("click", (event) => {
 // === Создание комнаты ===
 
 createRoomBtn.addEventListener("click", (event) => {
+    modalWin.style.display = "flex";
+});
+
+modalEntryBtn.addEventListener("click", (event) => {
+    const roomNameInput = document.getElementById("room-name-input");
+    if (!roomNameInput.value) return;
+
+    inRoom = true;
+
+    roomContent.style.display = "flex";
+    noRoom.style.display = "none";
+
     const roomItem = createRoom({
-        title: "NoName",
+        title: roomNameInput.value,
         players: "1",
         spectators: "0",
         status: "WAITING"
     });
 
     roomList.append(roomItem);
+
+    roomNameInput.value = "";
+    modalWin.style.display = "none";
 });
+
+modalCancelBtn.addEventListener("click", (event) => {
+    modalWin.style.display = "none";
+})
 
 // === СООБЩЕНИЯ В ЧАТЕ ===
 
@@ -112,17 +140,14 @@ function createRoom({ title, players, spectators, status }) {
     const playersEL = document.createElement("span");
     playersEL.classList.add("players");
     playersEL.textContent = `👥 ${players}/2`;
-    // playersEL.id = "players";
 
     const spectatorsEL = document.createElement("span");
     spectatorsEL.classList.add("spectators");
     spectatorsEL.textContent = `👁 ${spectators}`;
-    // spectatorsEL.id = "spectators";
 
     const statusEL = document.createElement("span");
     statusEL.classList.add("status");
     statusEL.textContent = `${status}`;
-    // statusEL.id = "status";
 
     meta.append(playersEL, spectatorsEL, statusEL);
     room.append(titleEL, meta)
