@@ -3,6 +3,9 @@ const login = document.getElementById("login");
 
 const gamePage = document.getElementById("game-page");
 
+const userNameField = document.querySelector(".username");
+let userName;
+
 const noRoom = document.getElementById("no-room");
 const roomContent = document.getElementById("room-content");
 
@@ -21,8 +24,6 @@ const getRooms = document.getElementById("get-rooms");
 
 const disconnectButton = document.getElementById("disconnect");
 
-let userName;
-
 let inRoom = false;
 
 const rooms = new Map();
@@ -37,6 +38,7 @@ registrationPage.addEventListener("submit", (event) => {
         window.api.connect({ userName });
     }
 
+    userName = login.value;
     login.value = "";
 
 });
@@ -46,6 +48,8 @@ window.api.onMessage((msg) => {
         case "LOGIN_SUCCESS": {
             registrationPage.style.display = "none";
             gamePage.style.display = "block";
+
+            userNameField.textContent = userName;
             break;
         }
 
@@ -99,6 +103,10 @@ function renderRooms(msg) {
 
 disconnectButton.addEventListener("click", (event) => {
     window.api.disconnect();
+
+    userName = null;
+    userNameField.textContent = "";
+
     registrationPage.style.display = "flex";
     gamePage.style.display = "none";
 });
