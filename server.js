@@ -71,6 +71,15 @@ const server = net.createServer((socket) => {
 
                         break;
                     }
+
+                    case "GET_ROOMS": {
+                        socket.write(JSON.stringify({
+                            type: "ROOMS_LIST",
+                            rooms: [...rooms.values()]
+                        }) + "\n");
+
+                        break;
+                    }
                 }
 
             } catch (e) {

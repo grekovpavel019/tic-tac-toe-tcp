@@ -17,13 +17,15 @@ const roomNameInput = document.getElementById("room-name-input");
 const modalEntryBtn = document.querySelector(".modal__entry");
 const modalCancelBtn = document.querySelector(".modal__cancel");
 
-const updateRoomsList = document.getElementById("update-list-rooms");
+const getRooms = document.getElementById("get-rooms");
 
 const disconnectButton = document.getElementById("disconnect");
 
 let userName;
 
 let inRoom = false;
+
+const rooms = new Map();
 
 // === РЕГИСТРАЦИЯ ===
 
@@ -70,8 +72,28 @@ window.api.onMessage((msg) => {
             roomList.append(roomItem);
             break;
         }
+
+        case "ROOMS_LIST": {
+            rooms.clear();
+            renderRooms(msg);
+
+            break;
+        }
     }
 });
+
+function renderRooms(msg) {
+    roomList.innerHTML = "";
+
+    for (const room of msg.rooms) {
+        rooms.set(room.id, room);
+
+        const roomItem = createRoom(room);
+        roomItem.dataset.id = room.id;
+
+        roomList.append(roomItem);
+    }
+}
 
 // === ДИСКОННЕКТ ===
 
@@ -91,8 +113,10 @@ createRoomBtn.addEventListener("click", (event) => {
 });
 
 // кнопка обновления комнат
-updateRoomsList.addEventListener("click", (event) => {
-
+getRooms.addEventListener("click", (event) => {
+    window.api.send({
+        type: "GET_ROOMS"
+    });
 });
 
 // если создаем комнату
