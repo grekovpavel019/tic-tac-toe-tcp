@@ -55,6 +55,7 @@ const server = net.createServer((socket) => {
                         const room =  {
                             id,
                             title,
+                            owner: socket.userName,
                             players: 1,
                             spectators: 0,
                             status: "WAITING"
@@ -99,6 +100,17 @@ function handleDisconnect(socket, err) {
     const userName = socket.userName;
 
     if (!userName) return;
+
+    for (const [id, room] of rooms) {
+        if (room.owner === userName) {
+            rooms.delete(id);
+
+            broadcast({
+                type: "ROOM_DELETED",
+                payload: { id }
+            });
+        }
+    }
 
     if (clients.has(userName)) {
         clients.delete(userName);

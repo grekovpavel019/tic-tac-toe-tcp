@@ -38,7 +38,6 @@ registrationPage.addEventListener("submit", (event) => {
         window.api.connect({ userName });
     }
 
-    userName = login.value;
     login.value = "";
 
 });
@@ -50,6 +49,11 @@ window.api.onMessage((msg) => {
             gamePage.style.display = "block";
 
             userNameField.textContent = userName;
+
+            window.api.send({
+                type: "GET_ROOMS"
+            });
+
             break;
         }
 
@@ -68,18 +72,39 @@ window.api.onMessage((msg) => {
                 status: room.status
             });
 
-            roomContent.style.display = "flex";
-            noRoom.style.display = "none";
-
             roomItem.dataset.id = room.id;
-
+            
             roomList.append(roomItem);
+            rooms.set(room.id, room);
+            
+            if (room.owner === userName) {  
+                roomContent.style.display = "flex";
+                noRoom.style.display = "none";
+            } 
+
             break;
+
         }
 
         case "ROOMS_LIST": {
             rooms.clear();
             renderRooms(msg);
+
+            break;
+        }
+
+        case "ROOM_DELETED": {
+            const { id } = msg.payload;
+
+            rooms.delete(id);
+
+            if (rooms.size === 0) {
+                roomContent.style.display = "none";
+                noRoom.style.display = "flex";
+            }
+
+            const el = document.querySelector(`[data-id="${id}"]`);
+            if (el) el.remove();
 
             break;
         }
@@ -109,6 +134,10 @@ disconnectButton.addEventListener("click", (event) => {
 
     registrationPage.style.display = "flex";
     gamePage.style.display = "none";
+
+    roomList.innerHTML = "";
+
+    rooms.clear();
 });
 
 // === Создание комнаты ===
