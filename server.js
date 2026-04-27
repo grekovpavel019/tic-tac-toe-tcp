@@ -48,7 +48,7 @@ const server = net.createServer((socket) => {
                     }
 
                     case "CREATE_ROOM": {
-                        const { title } = message.payload;
+                        const { title, mode } = message.payload;
 
                         const id = ++roomID;
 
@@ -56,10 +56,16 @@ const server = net.createServer((socket) => {
                             id,
                             title,
                             owner: socket.userName,
-                            players: 1,
-                            spectators: 0,
+                            players: [],
+                            spectators: [],
                             status: "WAITING"
                         };
+
+                        if (mode === "PLAYER") {
+                            room.players.push(socket.userName);  
+                        } else {
+                            room.spectators.push(socket.userName);
+                        }
 
                         rooms.set(id, room);
 

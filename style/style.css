@@ -65,6 +65,10 @@ p {
     display: none;
 }
 
+#game-mode {
+    display: none;
+}
+
 #game-page {
     display: none;
 }

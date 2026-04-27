@@ -73,12 +73,20 @@
     </div>
 
     <div id="modal-bg" class="modal-bg">
-        <div class="modal">
+        <div id="room-input" class="modal">
             <h2 class="modal__header">Введите название комнаты</h2>
             <input id="room-name-input" class="modal__input" type="text">
             <div class="modal__actions">
-                <button class="modal__entry">Войти</button>
-                <button class="modal__cancel">Отменить</button>
+                <button id="entry" class="modal__entry">Войти</button>
+                <button id="cancel" class="modal__cancel">Отменить</button>
+            </div>
+        </div>
+
+        <div id="game-mode" class="modal">
+            <h2 class="modal__header">Выберите режим</h2>
+            <div class="modal__actions">
+                <button id="player" class="modal__entry">Игрок</button>
+                <button id="spectator" class="modal__entry">Наблюдатель</button>
             </div>
         </div>
     </div>
