@@ -30,8 +30,9 @@ const getRooms = document.getElementById("get-rooms");
 
 const disconnectButton = document.getElementById("disconnect");
 
-let userName;
+let userName = null;
 let inRoom = false;
+let roomCreated = false;
 const rooms = new Map();
 
 // === РЕГИСТРАЦИЯ ===
@@ -39,7 +40,7 @@ const rooms = new Map();
 registrationPage.addEventListener("submit", (event) => {
     event.preventDefault();
     
-    const value = login.value.trim
+    const value = login.value.trim();
     if (!value) return;
     
     userName = login.value;
@@ -83,6 +84,11 @@ window.api.onMessage((msg) => {
             deleteRoom(msg.payload.id);
             break;
         }
+
+        case "ROOM_UPDATED": {
+            updateRoom(msg.payload.room);
+            break;
+        }
     }
 });
 
@@ -100,10 +106,12 @@ function addRoom(room) {
 }
 
 function updateRoom(room) {
-    rooms.set(room.id, room);
+    const el = document.querySelector(`[data-id="${room.id}"]`);
+    if (!el) return;
 
-    const old = document.querySelector(`[data-id="${room.id}"]`);
-    if (old) old.replaceWith(createRoom(room));
+    el.querySelector(".players").textContent = `👥 ${room.players.length}/2`;
+    el.querySelector(".spectators").textContent = `👁 ${room.spectators.length}`;
+    el.querySelector(".status").textContent = room.status;
 }
 
 function deleteRoom(id) {
@@ -117,7 +125,8 @@ function deleteRoom(id) {
 
 // обработка кнопки нажатия на создание комнаты
 createRoomBtn.addEventListener("click", (event) => {
-    if (inRoom) return;                                              // ДОРАБОТАТЬ ❗❗❗
+    if (inRoom) return;
+    if (roomCreated) return;                                              // ДОРАБОТАТЬ ❗❗❗
 
     modalWin.style.display = "flex";
 });
@@ -131,35 +140,65 @@ function closeModal() {
     roomNameInput.value = "";
 
     modalWin.style.display = "none";
-    gameMode.style.display = "none";
 }
 
 // -------------------------- CREATE ROOM FLOW ----------------------------
 
 function showGameMode() {
-    roomInputMod.style.display = "none";
     gameMode.style.display = "flex";
 }
 
 // если создаем комнату
-modalEntryBtn.addEventListener("click", async (event) => {
+modalEntryBtn.addEventListener("click", (event) => {
     const title = roomNameInput.value;
     if (!title) return;
-
-    showGameMode();
-    const mode = await chooseMode();
     
     window.api.send({
         type: "CREATE_ROOM",
         payload: {
             title,
-            mode
         }
     });
     
     closeModal();
-    roomNameInput.value = "";
 });
+
+// ------------------------------ JOIN ROOM ---------------------------------
+
+let currentRoomId = null;
+
+playerBtn.addEventListener("click", (event) => {
+    if (!currentRoomId) return;
+
+    window.api.send({
+        type: "JOIN_ROOM",
+        payload: {
+            id: currentRoomId,
+            mode: "PLAYER"
+        }
+    });
+
+    modalWin.style.display = "none";
+    gameMode.style.display = "none";
+    currentRoomId = null;
+});
+
+spectatorBtn.addEventListener("click", (event) => {
+    if (!currentRoomId) return;
+    
+    window.api.send({
+        type: "JOIN_ROOM",
+        payload: {
+            id: currentRoomId,
+            mode: "SPECTATOR"
+        }
+    });
+    
+    modalWin.style.display = "none";
+    gameMode.style.display = "none";
+    currentRoomId = null;
+});
+
 
 // ------------------------- UPDATE ROOMS ------------------------------------
 
@@ -169,7 +208,6 @@ getRooms.addEventListener("click", (event) => {
         type: "GET_ROOMS"
     });
 });
-
 
 // ------------------------ CHAT MESSENGER ------------------------------------
 
@@ -267,36 +305,13 @@ function createRoom({ id, title, players, spectators, status }) {
     room.append(titleEL, meta)
 
     room.addEventListener("click", (event) => {
-        window.api.send({
-            type: "JOIN_ROOM",
-            payload: { roomId: id }
-        });
+        currentRoomId = id;
+
+        modalWin.style.display = "flex";
+        roomInputMod.style.display = "none";
+        gameMode.style.display = "flex";
     });
+
 
     return room;
-}
-
-function chooseMode() {
-    return new Promise((resolve) => {
-        gameMode.style.display = "flex";
-
-        const onPlayer = () => {
-            cleanup();
-            resolve("PLAYER");
-        };
-
-        const onSpectator = () => {
-            cleanup();
-            resolve("SPECTATOR");
-        };
-
-        function cleanup() {
-            gameMode.style.display = "none";
-            playerBtn.removeEventListener("click", onPlayer);
-            spectatorBtn.removeEventListener("click", onSpectator);
-        }
-
-        playerBtn.addEventListener("click", onPlayer, { once: true });
-        spectatorBtn.addEventListener("click", onSpectator, { once: true });
-    });
 }

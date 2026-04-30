@@ -48,7 +48,7 @@ const server = net.createServer((socket) => {
                     }
 
                     case "CREATE_ROOM": {
-                        const { title, mode } = message.payload;
+                        const { title } = message.payload;
 
                         const id = ++roomID;
 
@@ -60,12 +60,6 @@ const server = net.createServer((socket) => {
                             spectators: [],
                             status: "WAITING"
                         };
-
-                        if (mode === "PLAYER") {
-                            room.players.push(socket.userName);  
-                        } else {
-                            room.spectators.push(socket.userName);
-                        }
 
                         rooms.set(id, room);
 
@@ -84,6 +78,31 @@ const server = net.createServer((socket) => {
                             type: "ROOMS_LIST",
                             rooms: [...rooms.values()]
                         }) + "\n");
+
+                        break;
+                    }
+
+                    case "JOIN_ROOM": {
+                        const { id, mode } = message.payload;
+
+                        const room = rooms.get(id);
+                        if (!room) return;
+
+                        if (mode === "PLAYER") {
+                            if (room.players.length >= 2) return;
+                            room.players.push(socket.userName);
+                        } else {
+                            room.spectators.push(socket.userName);
+                        }
+
+                        broadcast({
+                            type: "ROOM_UPDATED",
+                            payload: {
+                                room
+                            }
+                        });
+
+                        console.log(`Игрок ${socket.userName} присоединился к ${room.title}`);
 
                         break;
                     }
@@ -114,6 +133,27 @@ function handleDisconnect(socket, err) {
             broadcast({
                 type: "ROOM_DELETED",
                 payload: { id }
+            });
+        }
+
+        // удалить из игроков
+        const playerIndex = room.players.indexOf(userName);
+        if (playerIndex !== -1) {
+            room.players.splice(playerIndex, 1);
+        }
+
+        // удалить из наблюдателей
+        const spectatorIndex = room.spectators.indexOf(userName);
+        if (spectatorIndex !== -1) {
+            room.spectators.splice(spectatorIndex, 1);
+        }
+
+        if (playerIndex !== -1 || spectatorIndex !== -1) {
+            broadcast({
+                type: "ROOM_UPDATED",
+                payload: {
+                    room
+                }
             });
         }
     }
