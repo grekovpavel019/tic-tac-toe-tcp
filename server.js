@@ -89,11 +89,20 @@ const server = net.createServer((socket) => {
                         if (!room) return;
 
                         if (mode === "PLAYER") {
-                            if (room.players.length >= 2) return;
+                            if (room.players.length >= 2) {
+                                socket.write(JSON.stringify({
+                                    type: "JOIN_REJECT",
+                                    reason: "Переполнено"
+                                }) + "\n");
+                            }
                             room.players.push(socket.userName);
                         } else {
                             room.spectators.push(socket.userName);
                         }
+
+                        socket.write(JSON.stringify({
+                            type: "JOIN_SUCCESS"
+                        }) + "\n");                 
 
                         broadcast({
                             type: "ROOM_UPDATED",

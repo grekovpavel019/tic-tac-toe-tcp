@@ -22,7 +22,7 @@ const roomNameInput = document.getElementById("room-name-input");
 const modalEntryBtn = document.querySelector("#entry");
 const modalCancelBtn = document.querySelector("#cancel");
 
-const gameMode = document.getElementById("game-mode");
+const gameMode = document.getElementById("game-mode-bg");
 const playerBtn = document.getElementById("player");
 const spectatorBtn = document.getElementById("spectator");
 
@@ -52,6 +52,7 @@ registrationPage.addEventListener("submit", (event) => {
 window.api.onMessage((msg) => {
     switch(msg.type) {
         case "LOGIN_SUCCESS": {
+            hideRegistrationPage();
             showGamePage();
 
             userNameField.textContent = userName;
@@ -89,6 +90,10 @@ window.api.onMessage((msg) => {
             updateRoom(msg.payload.room);
             break;
         }
+
+        case "JOIN_REJECT": {
+            
+        }
     }
 });
 
@@ -121,6 +126,49 @@ function deleteRoom(id) {
     if (el) el.remove();
 }
 
+
+function showRegistrationPage() {
+    registrationPage.style.display = "flex";
+}
+
+function hideRegistrationPage() {
+    registrationPage.style.display = "none";
+}
+
+function showGamePage() {
+    gamePage.style.display = "flex";
+}
+
+function hideGamePage() {
+    gamePage.style.display = "none";
+}
+
+function showModalWindow() {
+    modalWin.style.display = "flex";
+}
+
+function hideModalWindow() {
+    modalWin.style.display = "none";
+}
+
+function showGameMode() {
+    gameMode.style.display = "flex";
+}
+
+function hideGameMode() {
+    gameMode.style.display = "none";
+}
+
+function showRoomContent() {
+    roomContent.style.display = "flex";
+    noRoom.style.display = "none";
+}
+
+function hideRoomContent() {
+    roomContent.style.display = "none";
+    noRoom.style.display = "flex";
+}
+
 // ---------------------- MODAL FLOW --------------------------
 
 // обработка кнопки нажатия на создание комнаты
@@ -128,13 +176,9 @@ createRoomBtn.addEventListener("click", (event) => {
     if (inRoom) return;
     if (roomCreated) return;                                              // ДОРАБОТАТЬ ❗❗❗
 
-    modalWin.style.display = "flex";
+    showModalWindow();
 });
 
-// отмена создания комнаты
-modalCancelBtn.addEventListener("click", (event) => {
-    closeModal();
-});
 
 function closeModal() {
     roomNameInput.value = "";
@@ -160,7 +204,14 @@ modalEntryBtn.addEventListener("click", (event) => {
         }
     });
     
-    closeModal();
+    roomNameInput.value = "";
+    hideModalWindow();
+});
+
+// отмена создания комнаты
+modalCancelBtn.addEventListener("click", (event) => {
+    roomNameInput.value = "";
+    hideModalWindow();
 });
 
 // ------------------------------ JOIN ROOM ---------------------------------
@@ -178,8 +229,8 @@ playerBtn.addEventListener("click", (event) => {
         }
     });
 
-    modalWin.style.display = "none";
-    gameMode.style.display = "none";
+    hideGameMode();
+    showRoomContent();
     currentRoomId = null;
 });
 
@@ -194,8 +245,9 @@ spectatorBtn.addEventListener("click", (event) => {
         }
     });
     
-    modalWin.style.display = "none";
-    gameMode.style.display = "none";
+    hideGameMode();
+    showRoomContent();
+
     currentRoomId = null;
 });
 
@@ -229,17 +281,6 @@ chatInput.addEventListener("submit", (event) => {
 
 
 // --------------------------- DISCONNECT ----------------------
-
-function showGamePage() {
-    registrationPage.style.display = "none";
-    gamePage.style.display = "flex";
-}
-
-function showRegistrationPage() {
-    registrationPage.style.display = "flex";
-    gamePage.style.display = "none";
-}
-
 disconnectButton.addEventListener("click", (event) => {
     window.api.disconnect();
 
@@ -247,21 +288,15 @@ disconnectButton.addEventListener("click", (event) => {
     userNameField.textContent = "";
 
     // ставим поле регистрации
+    hideGamePage();
     showRegistrationPage();
+
+    hideRoomContent();
 
     // чистим список комнат
     roomList.innerHTML = "";
 
-    modalWin.style.display = "none";
-    gameMode.style.display = "none";
-    roomInputMod.style.display = "flex";
-
     // ставим убираем содержимое комнаты, и ставим ничего
-    roomContent.style.display = "none";
-    noRoom.style.display = "flex";
-
-    roomNameInput.value = "";
-
     rooms.clear();
 });
 
@@ -307,9 +342,7 @@ function createRoom({ id, title, players, spectators, status }) {
     room.addEventListener("click", (event) => {
         currentRoomId = id;
 
-        modalWin.style.display = "flex";
-        roomInputMod.style.display = "none";
-        gameMode.style.display = "flex";
+        showGameMode();
     });
 
 
