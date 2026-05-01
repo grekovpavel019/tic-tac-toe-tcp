@@ -6,7 +6,10 @@ const gamePage = document.getElementById("game-page");
 const userNameField = document.querySelector(".username");
 
 const noRoom = document.getElementById("no-room");
+const alertMess = document.getElementById("alert-message");
 const roomContent = document.getElementById("room-content");
+
+const leaveRoomBtn = document.getElementById("leave-room");
 
 const chatInput = document.getElementById("chat__input");
 const chatField = document.getElementById("chat__field")
@@ -31,7 +34,10 @@ const getRooms = document.getElementById("get-rooms");
 const disconnectButton = document.getElementById("disconnect");
 
 let userName = null;
-let inRoom = false;
+let inRoom = {
+    state: false,
+    id: null
+};
 let roomCreated = false;
 const rooms = new Map();
 
@@ -83,6 +89,8 @@ window.api.onMessage((msg) => {
 
         case "ROOM_DELETED": {
             deleteRoom(msg.payload.id);
+            hideRoomContent();
+            showNoRoom();
             break;
         }
 
@@ -92,7 +100,17 @@ window.api.onMessage((msg) => {
         }
 
         case "JOIN_REJECT": {
-            
+            if (msg.target !== userName) return;
+
+            createAlertMessage(msg.reason);
+            break;
+        }
+
+        case "JOIN_SUCCESS": {
+            showRoomContent();
+            inRoom.state = true;
+            inRoom.id = msg.payload.id;
+            break;
         }
     }
 });
@@ -169,6 +187,14 @@ function hideRoomContent() {
     noRoom.style.display = "flex";
 }
 
+function showNoRoom() {
+    noRoom.style.display = "flex";
+}
+
+function hideNoRoom() {
+    noRoom.style.display = "none";
+}
+
 // ---------------------- MODAL FLOW --------------------------
 
 // обработка кнопки нажатия на создание комнаты
@@ -179,18 +205,7 @@ createRoomBtn.addEventListener("click", (event) => {
     showModalWindow();
 });
 
-
-function closeModal() {
-    roomNameInput.value = "";
-
-    modalWin.style.display = "none";
-}
-
 // -------------------------- CREATE ROOM FLOW ----------------------------
-
-function showGameMode() {
-    gameMode.style.display = "flex";
-}
 
 // если создаем комнату
 modalEntryBtn.addEventListener("click", (event) => {
@@ -230,7 +245,7 @@ playerBtn.addEventListener("click", (event) => {
     });
 
     hideGameMode();
-    showRoomContent();
+    // showRoomContent();
     currentRoomId = null;
 });
 
@@ -259,6 +274,19 @@ getRooms.addEventListener("click", (event) => {
     window.api.send({
         type: "GET_ROOMS"
     });
+});
+
+// ------------------------------ ROOM FLOW ----------------------------------
+
+leaveRoomBtn.addEventListener("click", (event) => {
+    window.api.send({
+        type: "LEAVE_ROOM",
+        payload: {
+            id: inRoom.id
+        }
+    });
+
+    
 });
 
 // ------------------------ CHAT MESSENGER ------------------------------------
@@ -312,6 +340,14 @@ function createMessage(value, userName) {
     `;
     
     chatField.appendChild(message);
+}
+
+function createAlertMessage(reason) {
+    const title = document.createElement("h2");
+    title.textContent = `${reason}`;
+
+    alertMess.innerHTML = "";
+    alertMess.append(title);
 }
 
 function createRoom({ id, title, players, spectators, status }) {

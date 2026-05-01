@@ -57,9 +57,9 @@ p {
     margin: 0;
 }
 
-#room-content {
+/* #room-content {
     display: none;
-}
+} */
 
 #modal-bg {
     display: none;
@@ -69,9 +69,13 @@ p {
     display: none;
 }
 
-#game-page {
+#alert-message {
     display: none;
 }
+
+/* #game-page {
+    display: none;
+} */
 
 .page {
     background-color: var(--bg-app);
@@ -422,9 +426,9 @@ p {
     grid-area: main-area;
 }
 
-/* #no-room {
+#no-room {
     display: none;
-} */
+}
 
 .no-room {
     width: 100%;
@@ -459,6 +463,32 @@ p {
 .game-area {
     width: 100%;
 }
+
+.area-nav {
+    padding: 10px 5px;
+
+    border-bottom: 3px solid var(--border);
+}
+
+.area-nav button {
+    padding: 5px;
+
+    border: none;
+    border-radius: 5px;
+
+    background-color: var(--accent);
+
+    color: var(--text-primary);
+
+    cursor: pointer;
+
+    transition: background-color .2s ease;
+}
+
+.area-nav button:hover {
+    background-color: var(--accent-hover);
+}
+
 
 .messenger__chat {
     grid-area: chat;

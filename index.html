@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="style/style.css">
 </head>
 <body>
-    <div id="registration-page" class="page page--center">
+    <!-- <div id="registration-page" class="page page--center">
         <form action="" class="registration">
             <h1 class="registration__title">Регистрация</h1>
             <div class="registration__login">
@@ -16,7 +16,7 @@
             </div>
             <button id="registration__btn" class="registration__btn">Отправить</button>
         </form>
-    </div>
+    </div> -->
 
     <div id="game-page" class="page page--full">
         <div class="game">
@@ -49,12 +49,19 @@
                 <div id="no-room" class="no-room">
                     <h2>Выберите комнату</h2>
                     <p>Или создайте новую</p>
+
+                    <div id="alert-message" style="color: red;">
+
+                    </div>
                 </div>
+
 
                 <div id="room-content" class="room-content">
 
                     <div id="game-area" class="game-area">
-                        
+                        <div class="area-nav">
+                            <button id="leave-room">Выйти</button>
+                        </div>
                     </div>
                     
                     <div id="messenger__chat" class="messenger__chat">

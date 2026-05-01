@@ -92,8 +92,10 @@ const server = net.createServer((socket) => {
                             if (room.players.length >= 2) {
                                 socket.write(JSON.stringify({
                                     type: "JOIN_REJECT",
-                                    reason: "Переполнено"
+                                    reason: "Данная комната переполнена",
+                                    target: socket.userName
                                 }) + "\n");
+                                return;
                             }
                             room.players.push(socket.userName);
                         } else {
@@ -101,7 +103,10 @@ const server = net.createServer((socket) => {
                         }
 
                         socket.write(JSON.stringify({
-                            type: "JOIN_SUCCESS"
+                            type: "JOIN_SUCCESS",
+                            payload: {
+                                id
+                            }
                         }) + "\n");                 
 
                         broadcast({
@@ -143,6 +148,7 @@ function handleDisconnect(socket, err) {
                 type: "ROOM_DELETED",
                 payload: { id }
             });
+
         }
 
         // удалить из игроков
