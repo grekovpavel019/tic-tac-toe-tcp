@@ -22,7 +22,10 @@ const server = net.createServer((socket) => {
     
                 switch (message.type) {
                     case "CONNECT": {
-                        if (clients.has(message.userName)) {
+                        const userName = message.userName?.trim();
+                        if (!userName) return;
+
+                        if (clients.has(userName)) {
     
                             socket.write(JSON.stringify({
                                 type: "LOGIN_ERROR",
@@ -37,8 +40,8 @@ const server = net.createServer((socket) => {
                             type: "LOGIN_SUCCESS"
                         }) + "\n");
     
-                        socket.userName = message.userName;
-                        clients.set(message.userName, socket);
+                        socket.userName = userName;
+                        clients.set(userName, socket);
                         break;
                     }
     
@@ -87,6 +90,9 @@ const server = net.createServer((socket) => {
 
                         const room = rooms.get(id);
                         if (!room) return;
+
+                        room.players = room.players.filter(u => u !== socket.userName);
+                        room.spectators = room.spectators.filter(u => u !== socket.userName);
 
                         if (mode === "PLAYER") {
                             if (room.players.length >= 2) {
