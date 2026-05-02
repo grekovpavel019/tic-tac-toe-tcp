@@ -38,7 +38,8 @@ const disconnectButton = document.getElementById("disconnect");
 let userName = null;
 let inRoom = {
     state: false,
-    id: null
+    id: null,
+    mode: null
 };
 let roomCreated = false;
 const rooms = new Map();
@@ -105,6 +106,7 @@ window.api.onMessage((msg) => {
             inRoom.state = false;
             inRoom.id = null;
 
+            chatField.innerHTML = "";
             hideRoomContent();
             showNoRoom();
             break;
@@ -123,7 +125,17 @@ window.api.onMessage((msg) => {
 
             inRoom.state = true;
             inRoom.id = msg.payload.id;
+            inRoom.mode = msg.payload.mode;
             break;
+        }
+
+        case "MESSAGE": {
+            const { user, text, roomId, mode } = msg.payload;
+
+            if (roomId !== inRoom.id) return;
+
+            if (user === userName) return;
+            createMessage(text, user, mode);
         }
     }
 });
@@ -316,7 +328,7 @@ chatInput.addEventListener("submit", (event) => {
         }
     });
 
-    createMessage(messageInput.value, userName);
+    createMessage(messageInput.value, userName, inRoom.mode);
     messageInput.value = "";
 });
 
@@ -345,17 +357,25 @@ disconnectButton.addEventListener("click", (event) => {
 
 // ------------------------------- HANDLERS -------------------------------------
 
-function createMessage(value, userName) {
+function createMessage(value, userName, mode) {
     const message = document.createElement("div");
     message.classList.add("message");
-    message.innerHTML = `
-        <div class="message__author">${userName}:</div>
-        <div class="message__text">${value}</div>
-    `;
-    
+
+    const author = document.createElement("div");
+    author.classList.add("message__author");
+    author.textContent = userName + ":";
+
+    const text = document.createElement("div");
+    text.classList.add("message__text");
+    text.textContent = value;
+
+    if (mode === "SPECTATOR") {
+        author.style.color = "#9b86b3";
+    }
+
+    message.append(author, text);
     chatField.appendChild(message);
 }
-
 
 closeAlertBtn.addEventListener("click", (event) => {
     document.getElementById("alert-bg").style.display = "none";
@@ -397,6 +417,8 @@ function createRoom({ id, title, players, spectators, status }) {
     room.append(titleEL, meta)
 
     room.addEventListener("click", (event) => {
+        if (inRoom.state) return;
+
         currentRoomId = id;
 
         showGameMode();

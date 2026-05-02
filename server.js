@@ -109,7 +109,8 @@ const server = net.createServer((socket) => {
                         socket.write(JSON.stringify({
                             type: "JOIN_SUCCESS",
                             payload: {
-                                id
+                                id,
+                                mode
                             }
                         }) + "\n");                 
 
@@ -172,6 +173,8 @@ const server = net.createServer((socket) => {
                                 room
                             }
                         });
+
+                        break;
                     }
 
                     case "MESSAGE_SEND": {
@@ -181,6 +184,7 @@ const server = net.createServer((socket) => {
                         if (!room) return;
 
                         const userMode = getUserMode(room, socket.userName);
+                        if (!userMode) return;
 
                         const msg = {
                             type: "MESSAGE",
@@ -192,15 +196,20 @@ const server = net.createServer((socket) => {
                             }
                         }
 
-                        const recipients = [...room.spectators];
+                        const recipients = new Set(room.spectators);
 
                         if (userMode === "PLAYER") {
-                            recipients.push(...room.players);
+                            room.players.forEach(p => recipients.add(p));
                         }
 
-                        // if (userMode === "SPECTATOR") {
-                        //     const recipients = [...room.spectators];
-                        // }
+                        for (const name of recipients) {
+                            const client = clients.get(name);
+                            if (client) {
+                                client.write(JSON.stringify(msg) + "\n");
+                            }
+                        }
+
+                        break;
                     }
                 }
 
