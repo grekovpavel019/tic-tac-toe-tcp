@@ -97,9 +97,13 @@ const server = net.createServer((socket) => {
                                 }) + "\n");
                                 return;
                             }
-                            room.players.push(socket.userName);
+                            if (!room.players.includes(socket.userName)) {
+                                room.players.push(socket.userName);
+                            }
                         } else {
-                            room.spectators.push(socket.userName);
+                            if (!room.players.includes(socket.userName)) {
+                                room.spectators.push(socket.userName);
+                            }
                         }
 
                         socket.write(JSON.stringify({
@@ -120,6 +124,84 @@ const server = net.createServer((socket) => {
 
                         break;
                     }
+
+                    case "LEAVE_ROOM": {
+                        const { id } = message.payload;
+                        const room = rooms.get(id);
+
+                        if (!room) return;
+
+                        const userName = socket.userName;
+                        let leavedSuccess = false;
+
+                        const playerIndex = room.players.indexOf(userName);
+                        if (playerIndex !== -1) {
+                            room.players.splice(playerIndex, 1);
+                            leavedSuccess = true;
+                        }
+
+                        const spectatorIndex = room.spectators.indexOf(userName);
+                        if (spectatorIndex !== -1) {
+                            room.spectators.splice(spectatorIndex, 1);
+                            leavedSuccess = true;
+                        }
+
+                        if (leavedSuccess) {
+                            socket.write(JSON.stringify({
+                                type: "LEAVE_SUCCESS",
+                                payload: {
+                                    id
+                                }
+                            }) + "\n");
+                        }
+
+                        if (room.owner === userName) {
+                            rooms.delete(id);
+
+                            broadcast({
+                                type: "ROOM_DELETED",
+                                payload: { id }
+                            });
+
+                            return;
+                        }
+
+                        broadcast({
+                            type: "ROOM_UPDATED",
+                            payload: {
+                                room
+                            }
+                        });
+                    }
+
+                    case "MESSAGE_SEND": {
+                        const { text, id } = message.payload;
+                        const room = rooms.get(id);
+
+                        if (!room) return;
+
+                        const userMode = getUserMode(room, socket.userName);
+
+                        const msg = {
+                            type: "MESSAGE",
+                            payload: {
+                                user: socket.userName,
+                                text,
+                                roomId: id,
+                                mode: userMode
+                            }
+                        }
+
+                        const recipients = [...room.spectators];
+
+                        if (userMode === "PLAYER") {
+                            recipients.push(...room.players);
+                        }
+
+                        // if (userMode === "SPECTATOR") {
+                        //     const recipients = [...room.spectators];
+                        // }
+                    }
                 }
 
             } catch (e) {
@@ -134,6 +216,12 @@ const server = net.createServer((socket) => {
 
     socket.on("error", (err) => { handleDisconnect(socket, err);} );
 });
+
+function getUserMode(room, userName) {
+    if (room.players.includes(userName)) return "PLAYER";
+    if (room.spectators.includes(userName)) return "SPECTATOR";
+    return;
+}
 
 function handleDisconnect(socket, err) {
     const userName = socket.userName;

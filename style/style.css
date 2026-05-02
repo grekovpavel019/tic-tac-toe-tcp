@@ -57,9 +57,9 @@ p {
     margin: 0;
 }
 
-/* #room-content {
+#room-content {
     display: none;
-} */
+}
 
 #modal-bg {
     display: none;
@@ -69,13 +69,17 @@ p {
     display: none;
 }
 
-#alert-message {
+#alert-bg {
     display: none;
 }
 
-/* #game-page {
+/* #alert-message {
     display: none;
 } */
+
+#game-page {
+    display: none;
+}
 
 .page {
     background-color: var(--bg-app);
@@ -377,7 +381,8 @@ p {
     gap: 10px;
 }
 
-.modal__actions button {
+.modal__actions button,
+.alert__button {
     font-size: 1.5em;
 
     padding: 5px;
@@ -394,7 +399,8 @@ p {
     transition: background-color .2s ease;
 }
 
-.modal__actions button:hover {
+.modal__actions button:hover,
+.alert__button:hover {
     background-color: var(--accent-hover);
 }
 

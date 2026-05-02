@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="style/style.css">
 </head>
 <body>
-    <!-- <div id="registration-page" class="page page--center">
+    <div id="registration-page" class="page page--center">
         <form action="" class="registration">
             <h1 class="registration__title">Регистрация</h1>
             <div class="registration__login">
@@ -16,7 +16,7 @@
             </div>
             <button id="registration__btn" class="registration__btn">Отправить</button>
         </form>
-    </div> -->
+    </div>
 
     <div id="game-page" class="page page--full">
         <div class="game">
@@ -36,7 +36,6 @@
                 </div>
 
                 <div id="room-list" class="sidebar__rooms">
-                    
                 </div>
 
                 <div class="disconnect">
@@ -50,9 +49,9 @@
                     <h2>Выберите комнату</h2>
                     <p>Или создайте новую</p>
 
-                    <div id="alert-message" style="color: red;">
+                    <!-- <div id="alert-message" style="color: red;">
 
-                    </div>
+                    </div> -->
                 </div>
 
 
@@ -100,6 +99,15 @@
             </div>
         </div>
     </div>
+
+    <div class="modal-bg" id="alert-bg">
+        <div class="modal">
+            <div id="alert-message"></div>
+            <button id="close-alert" class="alert__button">Закрыть</button>
+        </div>
+    </div>
+
+
     <script src="index.js" defer></script>
 </body>
 </html>

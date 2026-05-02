@@ -29,6 +29,8 @@ const gameMode = document.getElementById("game-mode-bg");
 const playerBtn = document.getElementById("player");
 const spectatorBtn = document.getElementById("spectator");
 
+const closeAlertBtn = document.getElementById("close-alert");
+
 const getRooms = document.getElementById("get-rooms");
 
 const disconnectButton = document.getElementById("disconnect");
@@ -71,7 +73,7 @@ window.api.onMessage((msg) => {
         }
 
         case "LOGIN_ERROR": {
-            console.log(msg.reason);
+            createAlertMessage(msg.reason);
             break;
         }
 
@@ -99,6 +101,15 @@ window.api.onMessage((msg) => {
             break;
         }
 
+        case "LEAVE_SUCCESS": {
+            inRoom.state = false;
+            inRoom.id = null;
+
+            hideRoomContent();
+            showNoRoom();
+            break;
+        }
+
         case "JOIN_REJECT": {
             if (msg.target !== userName) return;
 
@@ -107,7 +118,9 @@ window.api.onMessage((msg) => {
         }
 
         case "JOIN_SUCCESS": {
+            alertMess.innerHTML = "";
             showRoomContent();
+
             inRoom.state = true;
             inRoom.id = msg.payload.id;
             break;
@@ -199,8 +212,7 @@ function hideNoRoom() {
 
 // обработка кнопки нажатия на создание комнаты
 createRoomBtn.addEventListener("click", (event) => {
-    if (inRoom) return;
-    if (roomCreated) return;                                              // ДОРАБОТАТЬ ❗❗❗
+    if (inRoom.state) return;
 
     showModalWindow();
 });
@@ -245,7 +257,7 @@ playerBtn.addEventListener("click", (event) => {
     });
 
     hideGameMode();
-    // showRoomContent();
+
     currentRoomId = null;
 });
 
@@ -261,7 +273,6 @@ spectatorBtn.addEventListener("click", (event) => {
     });
     
     hideGameMode();
-    showRoomContent();
 
     currentRoomId = null;
 });
@@ -286,7 +297,7 @@ leaveRoomBtn.addEventListener("click", (event) => {
         }
     });
 
-    
+
 });
 
 // ------------------------ CHAT MESSENGER ------------------------------------
@@ -297,15 +308,18 @@ chatInput.addEventListener("submit", (event) => {
 
     if (!value) return;
 
-    // window.api.sendMessage(`${userName}: ${value}`);
+    window.api.send({
+        type: "MESSAGE_SEND",
+        payload: {
+            text: value,
+            id: inRoom.id
+        }
+    });
 
     createMessage(messageInput.value, userName);
     messageInput.value = "";
 });
 
-// window.api.onMessage((msg) => {
-//     createMessage(msg, "remote");
-// });
 
 
 // --------------------------- DISCONNECT ----------------------
@@ -342,7 +356,14 @@ function createMessage(value, userName) {
     chatField.appendChild(message);
 }
 
+
+closeAlertBtn.addEventListener("click", (event) => {
+    document.getElementById("alert-bg").style.display = "none";
+});
+
 function createAlertMessage(reason) {
+    document.getElementById("alert-bg").style.display = "flex";
+
     const title = document.createElement("h2");
     title.textContent = `${reason}`;
 
