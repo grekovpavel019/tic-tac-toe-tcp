@@ -120,6 +120,7 @@ window.api.onMessage((msg) => {
         }
 
         case "JOIN_SUCCESS": {
+            chatField.innerHTML = "";
             alertMess.innerHTML = "";
             showRoomContent();
 
@@ -349,6 +350,8 @@ disconnectButton.addEventListener("click", (event) => {
 
     // чистим список комнат
     roomList.innerHTML = "";
+    inRoom.state = false;
+    inRoom.id = null;
 
     // ставим убираем содержимое комнаты, и ставим ничего
     rooms.clear();

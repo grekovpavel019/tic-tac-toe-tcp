@@ -34,7 +34,7 @@ const server = net.createServer((socket) => {
                             return;
                         }
     
-                        console.log(`Клиент ${socket.remotePort} присоединился под зарегестрировался под именем ${message.userName}`);
+                        console.log(`Клиент ${socket.remotePort} присоединился под зарегестрировался под именем ${userName}`);
     
                         socket.write(JSON.stringify({
                             type: "LOGIN_SUCCESS"
@@ -52,6 +52,7 @@ const server = net.createServer((socket) => {
 
                     case "CREATE_ROOM": {
                         const { title } = message.payload;
+                        if (!title) return;
 
                         const id = ++roomID;
 
@@ -88,7 +89,7 @@ const server = net.createServer((socket) => {
                     case "JOIN_ROOM": {
                         const { id, mode } = message.payload;
 
-                        const room = rooms.get(id);
+                        const room = rooms.get(Number(id));
                         if (!room) return;
 
                         room.players = room.players.filter(u => u !== socket.userName);
@@ -107,7 +108,7 @@ const server = net.createServer((socket) => {
                                 room.players.push(socket.userName);
                             }
                         } else {
-                            if (!room.players.includes(socket.userName)) {
+                            if (!room.spectators.includes(socket.userName)) {
                                 room.spectators.push(socket.userName);
                             }
                         }
@@ -134,7 +135,7 @@ const server = net.createServer((socket) => {
 
                     case "LEAVE_ROOM": {
                         const { id } = message.payload;
-                        const room = rooms.get(id);
+                        const room = rooms.get(Number(id));
 
                         if (!room) return;
 
@@ -185,7 +186,7 @@ const server = net.createServer((socket) => {
 
                     case "MESSAGE_SEND": {
                         const { text, id } = message.payload;
-                        const room = rooms.get(id);
+                        const room = rooms.get(Number(id));
 
                         if (!room) return;
 
