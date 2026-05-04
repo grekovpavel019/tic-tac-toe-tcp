@@ -30,6 +30,7 @@ const playerBtn = document.getElementById("player");
 const spectatorBtn = document.getElementById("spectator");
 
 const onReadyBtn = document.getElementById("ready-btn");
+const gameBoard = document.querySelector(".game-board");
 
 const closeAlertBtn = document.getElementById("close-alert");
 
@@ -107,12 +108,11 @@ window.api.onMessage((msg) => {
 
             updateRoom(msg.payload.room);
 
-            if (room.id === inRoom.id) {
-                const el = document.querySelector(".players-on-ready");
-                if (el) {
-                    el.textContent = `Готово: ${room.ready.length}/2`
-                }
+            const el = document.querySelector(".players-on-ready");
+            if (el) {
+                el.textContent = `Готово: ${room.ready.length}/2`
             }
+            
             break;
         }
 
@@ -120,12 +120,18 @@ window.api.onMessage((msg) => {
             inRoom.state = false;
             inRoom.id = null;
 
+            isReady = false;
+            onReadyBtn.disabled = false;
+
             chatField.innerHTML = "";
             hideRoomContent();
             showNoRoom();
 
             const el = document.querySelector(".players-on-ready");
-            el.textContent = `Готово: ${0}/2`;
+            if (el) {
+                el.textContent = `Готово: ${0}/2`;
+            }
+
             break;
         }
 
@@ -144,6 +150,9 @@ window.api.onMessage((msg) => {
             inRoom.state = true;
             inRoom.id = msg.payload.id;
             inRoom.mode = msg.payload.mode;
+
+            isReady = false;
+            onReadyBtn.disabled = false;
 
             const el = document.querySelector(".players-on-ready");
 
@@ -338,13 +347,16 @@ getRooms.addEventListener("click", (event) => {
 });
 
 // ------------------------------ ROOM FLOW ----------------------------------
-
-const div = document.querySelector(".div");
-div.style.display = "none";
+let isReady = false;
 
 onReadyBtn.addEventListener("click", (event) => {
     let playerStatus = event.target;
-    console.log("aa")
+    console.log("aa");
+
+    if (isReady) return;
+
+    isReady = true;
+    onReadyBtn.disabled = true;
 
     window.api.send({
         type: "READY",
@@ -380,7 +392,7 @@ chatInput.addEventListener("submit", (event) => {
         }
     });
 
-    createMessage(messageInput.value, userName, inRoom.mode);
+    // createMessage(messageInput.value, userName, inRoom.mode);
     messageInput.value = "";
 });
 

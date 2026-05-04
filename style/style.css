@@ -468,6 +468,11 @@ p {
 
 .game-area {
     width: 100%;
+
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
 }
 
 .area-nav {
@@ -513,6 +518,38 @@ p {
     background-color: var(--accent-hover);
 }
 
+.wrapper {
+    flex: 1;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.game-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px 10px;
+
+    color: transparent;
+}
+
+.cell {
+    border: 1px solid var(--border);
+    border-radius: 15px;
+
+    padding: 10px 20px;
+
+    font-size: 6em;
+
+    cursor: pointer;
+
+    transition: background-color .2s ease;
+}
+
+.cell:hover {
+    background-color: var(--input-hover);
+}
 
 .messenger__chat {
     grid-area: chat;

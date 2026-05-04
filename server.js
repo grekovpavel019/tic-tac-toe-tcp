@@ -238,6 +238,8 @@ const server = net.createServer((socket) => {
                         const room = rooms.get(Number(id));
                         if (!room) return;
 
+                        if (room.status !== "WAITING") return;
+
                         if (!room.players.includes(socket.userName)) return;
 
                         if (!room.ready.includes(socket.userName)) {
@@ -246,7 +248,7 @@ const server = net.createServer((socket) => {
                         
                         console.log('фф')
 
-                        broadcast({
+                        broadcastToRoom(room, {
                             type: "ROOM_UPDATED",
                             payload: {
                                 room
@@ -254,6 +256,16 @@ const server = net.createServer((socket) => {
                         });
 
                         if (room.ready.length === 2) {
+                            console.log(322)
+                            room.status = "PLAYING";
+
+                            broadcast({
+                                type: "ROOM_UPDATED",
+                                payload: {
+                                    room
+                                }
+                            });
+
                             startGame(room);
                         }
 
@@ -288,13 +300,6 @@ function startGame(room) {
     }
 
     room.status = "PLAYING"
-
-    // broadcast({
-    //     type: "ROOM_UPDATED",
-    //     payload: {
-    //         status
-    //     }
-    // });
 
     broadcastToRoom(room, {
         type: "GAME_START",
@@ -355,7 +360,7 @@ function handleDisconnect(socket, err) {
         }
 
         if (playerIndex !== -1 || spectatorIndex !== -1) {
-            broadcast({
+            broadcastToRoom(room, {
                 type: "ROOM_UPDATED",
                 payload: {
                     room
