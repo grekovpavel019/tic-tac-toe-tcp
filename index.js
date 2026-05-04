@@ -29,6 +29,8 @@ const gameMode = document.getElementById("game-mode-bg");
 const playerBtn = document.getElementById("player");
 const spectatorBtn = document.getElementById("spectator");
 
+const onReadyBtn = document.getElementById("ready-btn");
+
 const closeAlertBtn = document.getElementById("close-alert");
 
 const getRooms = document.getElementById("get-rooms");
@@ -137,6 +139,18 @@ window.api.onMessage((msg) => {
 
             if (user === userName) return;
             createMessage(text, user, mode);
+            break;
+        }
+
+        case "READY_UPDATE": {
+            const { roomId, ready } = msg.payload;
+
+            if (roomId !== inRoom.id) return;
+
+            const el = document.querySelector(".players-on-ready");
+            el.textContent = `Готово: ${ready.length}/2`;
+            
+            break;
         }
     }
 });
@@ -302,6 +316,22 @@ getRooms.addEventListener("click", (event) => {
 
 // ------------------------------ ROOM FLOW ----------------------------------
 
+const div = document.querySelector(".div");
+div.style.display = "none";
+
+onReadyBtn.addEventListener("click", (event) => {
+    let playerStatus = event.target;
+    console.log("aa")
+
+    window.api.send({
+        type: "READY",
+        payload: {
+            id: inRoom.id,
+        }
+    });
+
+});
+
 leaveRoomBtn.addEventListener("click", (event) => {
     window.api.send({
         type: "LEAVE_ROOM",
@@ -309,8 +339,6 @@ leaveRoomBtn.addEventListener("click", (event) => {
             id: inRoom.id
         }
     });
-
-
 });
 
 // ------------------------ CHAT MESSENGER ------------------------------------

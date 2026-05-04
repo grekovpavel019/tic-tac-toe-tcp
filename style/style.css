@@ -474,6 +474,12 @@ p {
     padding: 10px 5px;
 
     border-bottom: 3px solid var(--border);
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    color: var(--text-primary)
 }
 
 .area-nav button {
@@ -489,6 +495,18 @@ p {
     cursor: pointer;
 
     transition: background-color .2s ease;
+}
+
+.ready-block {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.player-role {
+    display: inline;
+
+    color: var(--text-primary)
 }
 
 .area-nav button:hover {

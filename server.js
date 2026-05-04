@@ -62,7 +62,13 @@ const server = net.createServer((socket) => {
                             owner: socket.userName,
                             players: [],
                             spectators: [],
-                            status: "WAITING"
+                            status: "WAITING",
+
+                            ready: [],
+                            board: Array(9).fill(0),
+
+                            symbols: {},
+                            turn: null
                         };
 
                         rooms.set(id, room);
@@ -218,6 +224,33 @@ const server = net.createServer((socket) => {
 
                         break;
                     }
+
+                    case "READY": {
+                        const { id } = message.payload;
+                        console.log(id);
+                        const room = rooms.get(Number(id));
+                        if (!room) return;
+
+                        if (!room.players.includes(socket.userName)) return;
+
+                        if (!room.ready.includes(socket.userName)) {
+                            room.ready.push(socket.userName);
+                        }
+                        
+                        console.log('фф')
+
+                        broadcastToRoom(room, {
+                            type: "READY_UPDATE",
+                            payload: {
+                                roomId: room.id,
+                                ready: room.ready,
+                            }
+                        });
+
+                        if (room.ready.length === 2) {
+                            startGame(room);
+                        }
+                    }
                 }
 
             } catch (e) {
@@ -232,6 +265,61 @@ const server = net.createServer((socket) => {
 
     socket.on("error", (err) => { handleDisconnect(socket, err);} );
 });
+
+function startGame(room) {
+    const [p1, p2] = room.players;
+
+    if (Math.random() > 0.5) {
+        room.symbols[p1] = "X"
+        room.symbols[p2] = "O"
+        room.turn = p1
+    } else {
+        room.symbols[p1] = "O"
+        room.symbols[p2] = "X"
+        room.turn = p2;
+    }
+
+    room.status = "PLAYING"
+
+    // broadcast({
+    //     type: "ROOM_UPDATED",
+    //     payload: {
+    //         status
+    //     }
+    // });
+
+    broadcastToRoom(room, {
+        type: "GAME_START",
+        payload: {
+            roomID: room.id,
+        }
+    });
+
+    for (const name of [...room.players, ...room.spectators]) {
+        const client = clients.get(name);
+        if (!client) continue;
+
+        client.write(JSON.stringify({
+            type: "GAME_START",
+            payload: {
+                roomId: room.id,
+                symbols: room.symbols,
+                turn: room.turn
+            }
+        }) + "\n");
+    }
+}
+
+function broadcastToRoom(room, msg) {
+    const data = JSON.stringify(msg) + "\n";
+
+    for (const name of [...room.players, ...room.spectators]) {
+        const client = clients.get(name);
+        if (!client) continue;
+
+        client.write(data);
+    }   
+}
 
 function getUserMode(room, userName) {
     if (room.players.includes(userName)) return "PLAYER";
