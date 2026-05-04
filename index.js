@@ -94,13 +94,25 @@ window.api.onMessage((msg) => {
 
         case "ROOM_DELETED": {
             deleteRoom(msg.payload.id);
-            hideRoomContent();
-            showNoRoom();
+            if (inRoom.id === msg.payload.id) {
+                showNoRoom();
+                hideRoomContent();
+                inRoom.state = false;
+            }
             break;
         }
 
         case "ROOM_UPDATED": {
+            const room = msg.payload.room;
+
             updateRoom(msg.payload.room);
+
+            if (room.id === inRoom.id) {
+                const el = document.querySelector(".players-on-ready");
+                if (el) {
+                    el.textContent = `Готово: ${room.ready.length}/2`
+                }
+            }
             break;
         }
 
@@ -111,6 +123,9 @@ window.api.onMessage((msg) => {
             chatField.innerHTML = "";
             hideRoomContent();
             showNoRoom();
+
+            const el = document.querySelector(".players-on-ready");
+            el.textContent = `Готово: ${0}/2`;
             break;
         }
 
@@ -129,6 +144,12 @@ window.api.onMessage((msg) => {
             inRoom.state = true;
             inRoom.id = msg.payload.id;
             inRoom.mode = msg.payload.mode;
+
+            const el = document.querySelector(".players-on-ready");
+
+            if (el) {
+                el.textContent = `Готово: ${msg.payload.ready.length}/2`
+            }
             break;
         }
 
@@ -142,16 +163,18 @@ window.api.onMessage((msg) => {
             break;
         }
 
-        case "READY_UPDATE": {
-            const { roomId, ready } = msg.payload;
+        // case "READY_UPDATE": {
+        //     const { roomId, ready } = msg.payload;
 
-            if (roomId !== inRoom.id) return;
+        //     if (roomId !== inRoom.id) return;
 
-            const el = document.querySelector(".players-on-ready");
-            el.textContent = `Готово: ${ready.length}/2`;
+        //     const el = document.querySelector(".players-on-ready");
+        //     el.textContent = `Готово: ${ready.length}/2`;
+
+        //     // onReadyBtn.style.display = "none";
             
-            break;
-        }
+        //     break;
+        // }
     }
 });
 
@@ -380,6 +403,8 @@ disconnectButton.addEventListener("click", (event) => {
     roomList.innerHTML = "";
     inRoom.state = false;
     inRoom.id = null;
+
+    
 
     // ставим убираем содержимое комнаты, и ставим ничего
     rooms.clear();

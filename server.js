@@ -123,9 +123,11 @@ const server = net.createServer((socket) => {
                             type: "JOIN_SUCCESS",
                             payload: {
                                 id,
-                                mode
+                                mode,
+                                ready: room.ready
                             }
-                        }) + "\n");                 
+                        }) + "\n");   
+                        
 
                         broadcast({
                             type: "ROOM_UPDATED",
@@ -158,6 +160,11 @@ const server = net.createServer((socket) => {
                         if (spectatorIndex !== -1) {
                             room.spectators.splice(spectatorIndex, 1);
                             leavedSuccess = true;
+                        }
+
+                        const readyIndex = room.ready.indexOf(userName);
+                        if (readyIndex !== -1) {
+                            room.ready.splice(readyIndex, 1);
                         }
 
                         if (leavedSuccess) {
@@ -239,17 +246,18 @@ const server = net.createServer((socket) => {
                         
                         console.log('фф')
 
-                        broadcastToRoom(room, {
-                            type: "READY_UPDATE",
+                        broadcast({
+                            type: "ROOM_UPDATED",
                             payload: {
-                                roomId: room.id,
-                                ready: room.ready,
+                                room
                             }
                         });
 
                         if (room.ready.length === 2) {
                             startGame(room);
                         }
+
+                        break;
                     }
                 }
 
@@ -294,20 +302,6 @@ function startGame(room) {
             roomID: room.id,
         }
     });
-
-    for (const name of [...room.players, ...room.spectators]) {
-        const client = clients.get(name);
-        if (!client) continue;
-
-        client.write(JSON.stringify({
-            type: "GAME_START",
-            payload: {
-                roomId: room.id,
-                symbols: room.symbols,
-                turn: room.turn
-            }
-        }) + "\n");
-    }
 }
 
 function broadcastToRoom(room, msg) {
@@ -353,6 +347,11 @@ function handleDisconnect(socket, err) {
         const spectatorIndex = room.spectators.indexOf(userName);
         if (spectatorIndex !== -1) {
             room.spectators.splice(spectatorIndex, 1);
+        }
+
+        const readyIndex = room.ready.indexOf(userName);
+        if (readyIndex !== -1) {
+            room.ready.splice(readyIndex, 1);
         }
 
         if (playerIndex !== -1 || spectatorIndex !== -1) {
