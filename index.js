@@ -116,6 +116,13 @@ window.api.onMessage((msg) => {
             break;
         }
 
+        case "ROOM_STATUS_UPDATED": {
+            const room = msg.payload.room;
+
+            updateRoomStatus(room);
+            break;
+        }
+
         case "LEAVE_SUCCESS": {
             inRoom.state = false;
             inRoom.id = null;
@@ -198,6 +205,13 @@ function addRoom(room) {
     const el = createRoom(room);
     el.dataset.id = room.id;
     roomList.appendChild(el);
+}
+
+function updateRoomStatus(room) {
+    const el = document.querySelector(`[data-id="${room.id}"]`);
+    if (!el) return;
+
+    el.querySelector(".status").textContent = room.status;
 }
 
 function updateRoom(room) {

@@ -23,6 +23,7 @@ const server = net.createServer((socket) => {
                 switch (message.type) {
                     case "CONNECT": {
                         const userName = message.userName?.trim();
+                        console.log("Ошибка")
                         if (!userName) return;
 
                         if (clients.has(userName)) {
@@ -248,6 +249,20 @@ const server = net.createServer((socket) => {
                         
                         console.log('фф')
 
+                        if (room.ready.length !== 2) {
+                            broadcastToRoom(room, {
+                                type: "ROOM_UPDATED",
+                                payload: {
+                                    room
+                                }
+                            });
+
+                            return;
+                        }
+
+                        room.status = "PLAYING";
+
+                        // startGame(room);
                         broadcastToRoom(room, {
                             type: "ROOM_UPDATED",
                             payload: {
@@ -255,19 +270,12 @@ const server = net.createServer((socket) => {
                             }
                         });
 
-                        if (room.ready.length === 2) {
-                            console.log(322)
-                            room.status = "PLAYING";
-
-                            broadcast({
-                                type: "ROOM_UPDATED",
-                                payload: {
-                                    room
-                                }
-                            });
-
-                            startGame(room);
-                        }
+                        broadcast({
+                            type: "ROOM_STATUS_UPDATED",
+                            payload: {
+                                room
+                            }
+                        });
 
                         break;
                     }
@@ -299,14 +307,14 @@ function startGame(room) {
         room.turn = p2;
     }
 
-    room.status = "PLAYING"
+    // room.status = "PLAYING"
 
-    broadcastToRoom(room, {
-        type: "GAME_START",
-        payload: {
-            roomID: room.id,
-        }
-    });
+    // broadcastToRoom(room, {
+    //     type: "GAME_START",
+    //     payload: {
+    //         roomID: room.id,
+    //     }
+    // });
 }
 
 function broadcastToRoom(room, msg) {
