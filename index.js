@@ -103,6 +103,8 @@ window.api.onMessage((msg) => {
                 showNoRoom();
                 hideRoomContent();
                 inRoom.state = false;
+
+                leaveFromRoom();
             }
             break;
         }
@@ -148,6 +150,13 @@ window.api.onMessage((msg) => {
             inRoom.state = true;
             inRoom.id = msg.payload.id;
             inRoom.mode = msg.payload.mode;
+
+            if (inRoom.mode === "SPECTATOR") {
+                playerRole.textContent = "Вы наблюдатель";
+                onReadyBtn.style.display = "none";
+            }
+
+            console.log(inRoom.mode);
 
             isReady = false;
             onReadyBtn.disabled = false;
@@ -202,6 +211,8 @@ window.api.onMessage((msg) => {
             const { roomId, board } = msg.payload;
 
             gameBoard.style.display = "grid";
+
+            onReadyBtn.style.display = "none";
 
             initBoard();
             updateBoard(board)
@@ -320,8 +331,6 @@ function showNoRoom() {
 function hideNoRoom() {
     noRoom.style.display = "none";
 }
-
-
 
 // ---------------------- MODAL FLOW --------------------------
 
@@ -460,6 +469,10 @@ function leaveFromRoom() {
 
     isReady = false;
     onReadyBtn.disabled = false;
+
+    playerRole.textContent = "Ваша роль: "
+
+    onReadyBtn.style.display = "block";
 
     chatField.innerHTML = "";
     hideRoomContent();
