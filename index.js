@@ -30,7 +30,8 @@ const playerBtn = document.getElementById("player");
 const spectatorBtn = document.getElementById("spectator");
 
 const onReadyBtn = document.getElementById("ready-btn");
-const gameBoard = document.querySelector(".game-board");
+const gameBoard = document.querySelector("#game-board");
+const playerRole = document.querySelector(".player-role");
 
 const closeAlertBtn = document.getElementById("close-alert");
 
@@ -42,7 +43,10 @@ let userName = null;
 let inRoom = {
     state: false,
     id: null,
-    mode: null
+    mode: null,
+
+    role: null,
+    turn: false
 };
 let roomCreated = false;
 const rooms = new Map();
@@ -124,20 +128,7 @@ window.api.onMessage((msg) => {
         }
 
         case "LEAVE_SUCCESS": {
-            inRoom.state = false;
-            inRoom.id = null;
-
-            isReady = false;
-            onReadyBtn.disabled = false;
-
-            chatField.innerHTML = "";
-            hideRoomContent();
-            showNoRoom();
-
-            const el = document.querySelector(".players-on-ready");
-            if (el) {
-                el.textContent = `Готово: ${0}/2`;
-            }
+            leaveFromRoom();
 
             break;
         }
@@ -166,6 +157,13 @@ window.api.onMessage((msg) => {
             if (el) {
                 el.textContent = `Готово: ${msg.payload.ready.length}/2`
             }
+
+            if (msg.payload.status === "PLAYING" && gameBoard.style.display !== "grid") {
+                gameBoard.style.display = "grid";
+                initBoard();
+            }
+            updateBoard(msg.payload.board);
+
             break;
         }
 
@@ -174,8 +172,50 @@ window.api.onMessage((msg) => {
 
             if (roomId !== inRoom.id) return;
 
-            if (user === userName) return;
+            // if (user === userName) return;
             createMessage(text, user, mode);
+            break;
+        }
+
+        case "ROLE_DELIVERY": {
+            const { symbol, isYourTurn } = msg.payload;
+
+            inRoom.role = symbol;
+            inRoom.turn = isYourTurn;
+
+            if (symbol === "X") {
+                playerRole.textContent = `Ваша роль: ${"Крестик"}`
+            } else {
+                playerRole.textContent = `Ваша роль: ${"Нолик"}`
+            }
+
+            if (isYourTurn) {
+                playerRole.textContent += " Ваш ХОД"
+            } else {
+                playerRole.textContent += " Ожидайте"
+            }
+
+            break;
+        }
+
+        case "GAME_START": {
+            const { roomId, board } = msg.payload;
+
+            gameBoard.style.display = "grid";
+
+            initBoard();
+            updateBoard(board)
+
+            break;
+        }
+
+        case "GAME_UPDATE": {
+            const { board, turn } = msg.payload;
+            
+            inRoom.turn = (turn === userName);
+
+            updateBoard(board);
+
             break;
         }
 
@@ -280,6 +320,8 @@ function showNoRoom() {
 function hideNoRoom() {
     noRoom.style.display = "none";
 }
+
+
 
 // ---------------------- MODAL FLOW --------------------------
 
@@ -410,11 +452,30 @@ chatInput.addEventListener("submit", (event) => {
     messageInput.value = "";
 });
 
-
-
 // --------------------------- DISCONNECT ----------------------
+
+function leaveFromRoom() {
+    inRoom.state = false;
+    inRoom.id = null;
+
+    isReady = false;
+    onReadyBtn.disabled = false;
+
+    chatField.innerHTML = "";
+    hideRoomContent();
+    showNoRoom();
+
+    const el = document.querySelector(".players-on-ready");
+    if (el) {
+        el.textContent = `Готово: ${0}/2`;
+    }
+}
+
+
 disconnectButton.addEventListener("click", (event) => {
     window.api.disconnect();
+    // вышли из комнаты
+    leaveFromRoom();
 
     userName = null;
     userNameField.textContent = "";
@@ -423,14 +484,8 @@ disconnectButton.addEventListener("click", (event) => {
     hideGamePage();
     showRegistrationPage();
 
-    hideRoomContent();
-
     // чистим список комнат
     roomList.innerHTML = "";
-    inRoom.state = false;
-    inRoom.id = null;
-
-    
 
     // ставим убираем содержимое комнаты, и ставим ничего
     rooms.clear();
@@ -438,6 +493,50 @@ disconnectButton.addEventListener("click", (event) => {
 
 
 // ------------------------------- HANDLERS -------------------------------------
+function initBoard() {
+    gameBoard.innerHTML = "";
+
+    for (let i = 0; i < 9; i++) {
+        const el = document.createElement("div");
+        el.classList.add("cell");
+    
+        
+        el.addEventListener("click", () => {
+            onCellClick(i);
+        });
+    
+        gameBoard.appendChild(el);
+    }
+}
+
+function updateBoard(board) {
+    const cells = gameBoard.children;
+
+    board.forEach((cell, i) => {
+        const el = cells[i];
+
+        if (cell === "X" || cell === "O") {
+            el.textContent = cell;
+            el.style.color = "white";
+        } else {
+            el.textContent = "1";
+        }
+    });
+}
+
+function onCellClick(index) {
+    if (!inRoom.state) return;
+    if (!inRoom.role) return;
+    if (!inRoom.turn) return;
+
+    window.api.send({
+        type: "MAKE_MOVE",
+        payload: {
+            roomId: inRoom.id,
+            index
+        }
+    });
+}
 
 function createMessage(value, userName, mode) {
     const message = document.createElement("div");

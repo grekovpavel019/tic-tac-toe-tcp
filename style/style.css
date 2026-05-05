@@ -81,6 +81,10 @@ p {
     display: none;
 }
 
+#game-board {
+    display: none;
+}
+
 .page {
     background-color: var(--bg-app);
 }

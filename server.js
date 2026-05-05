@@ -23,7 +23,6 @@ const server = net.createServer((socket) => {
                 switch (message.type) {
                     case "CONNECT": {
                         const userName = message.userName?.trim();
-                        console.log("Ошибка")
                         if (!userName) return;
 
                         if (clients.has(userName)) {
@@ -125,9 +124,13 @@ const server = net.createServer((socket) => {
                             payload: {
                                 id,
                                 mode,
-                                ready: room.ready
+                                ready: room.ready,
+                                board: room.board,
+                                status: room.status,
+                                turn: room.turn,
+                                symbols: room.status === "PLAYING" ? room.symbols : null
                             }
-                        }) + "\n");   
+                        }) + "\n");  
                         
 
                         broadcast({
@@ -259,10 +262,11 @@ const server = net.createServer((socket) => {
 
                             return;
                         }
-
+                        room.ready = [];
                         room.status = "PLAYING";
 
-                        // startGame(room);
+                        startGame(room);
+
                         broadcastToRoom(room, {
                             type: "ROOM_UPDATED",
                             payload: {
@@ -274,6 +278,66 @@ const server = net.createServer((socket) => {
                             type: "ROOM_STATUS_UPDATED",
                             payload: {
                                 room
+                            }
+                        });
+
+                        break;
+                    }
+
+                    case "MAKE_MOVE": {
+                        const { roomId, index } = message.payload;
+                        const room = rooms.get(Number(roomId));
+
+                        if (!room) return;
+
+                        const user = socket.userName;
+                        if (room.status !== "PLAYING") return;
+                        if (room.turn !== user) return;
+                        if (room.board[index] !== 0) return;
+
+                        const symbol = room.symbols[user];
+
+                        room.board[index] = symbol;
+
+                        // if (winnerSymbol) {
+                        //     room.status = "FINISHED";
+
+                        //     const winner = socket.userName;
+
+                        //     broadcastToRoom(room, {
+                        //         type: "GAME_FINISHED",
+                        //         payload: {
+                        //             winner,
+                        //             board: room.board
+                        //         }
+                        //     });
+
+                        //     return;
+                        // }
+
+                        // if (draw) {
+                        //     room.status = "FINISHED";
+
+                        //     broadcastToRoom(room, {
+                        //         type: "GAME_FINISHED",
+                        //         payload: {
+                        //             winner: null,
+                        //             board: room.board
+                        //         }
+                        //     });
+
+                        //     return;
+                        // }
+
+                        // смена хода
+                        const [p1, p2] = room.players;
+                        room.turn = room.turn === p1 ? p2 : p1;
+
+                        broadcastToRoom(room, {
+                            type: "GAME_UPDATE",
+                            payload: {
+                                board: room.board,
+                                turn: room.turn
                             }
                         });
 
@@ -294,6 +358,39 @@ const server = net.createServer((socket) => {
     socket.on("error", (err) => { handleDisconnect(socket, err);} );
 });
 
+const WIN_LINES = [
+    [0,1,2],
+    [3,4,5],
+    [6,7,8],
+
+    [0,3,6],
+    [1,4,7],
+    [2,5,8],
+
+    [0,4,8],
+    [2,4,6]
+];
+
+function checkWinner(board) {
+    for (const line of WIN_LINES) {
+        const [a, b, c] = line;
+
+        if (
+            board[a] !== 0 &&
+            board[a] === board[b] &&
+            board[a] === board[c]
+        ) {
+            return board[a]; // "X" или "O"
+        }
+    }
+
+    return null;
+}
+
+function isDraw(board) {
+    return board.every(cell => cell !== 0);
+}
+
 function startGame(room) {
     const [p1, p2] = room.players;
 
@@ -307,14 +404,38 @@ function startGame(room) {
         room.turn = p2;
     }
 
-    // room.status = "PLAYING"
 
-    // broadcastToRoom(room, {
-    //     type: "GAME_START",
-    //     payload: {
-    //         roomID: room.id,
-    //     }
-    // });
+    for (const player of [...room.players]) {
+        const client = clients.get(player);
+        if (!client) continue;
+
+        client.write(JSON.stringify({
+            type: "ROLE_DELIVERY",
+            payload: {
+                symbol: room.symbols[player],
+                isYourTurn: room.turn === player
+            }
+        }) + "\n");
+    }
+    
+    broadcastToRoom(room, {
+        type: "GAME_START",
+        payload: {
+            roomID: room.id,
+            board: room.board
+        }
+    });
+}
+
+function broadcastToRoomPlayers(room, msg) {
+    const data = JSON.stringify(msg) + "\n";
+
+    for (const name of [...room.players]) {
+        const client = clients.get(name);
+        if (!client) continue;
+
+        client.write(data);
+    }
 }
 
 function broadcastToRoom(room, msg) {
