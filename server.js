@@ -299,35 +299,54 @@ const server = net.createServer((socket) => {
 
                         room.board[index] = symbol;
 
-                        // if (winnerSymbol) {
-                        //     room.status = "FINISHED";
+                        const winner = checkWinner(room.board);
 
-                        //     const winner = socket.userName;
+                        if (winner) {
+                            room.status = "FINISHED";
 
-                        //     broadcastToRoom(room, {
-                        //         type: "GAME_FINISHED",
-                        //         payload: {
-                        //             winner,
-                        //             board: room.board
-                        //         }
-                        //     });
+                            broadcastToRoom(room, {
+                                type: "GAME_FINISHED",
+                                payload: {
+                                    winner,
+                                    board: room.board
+                                }
+                            });
 
-                        //     return;
-                        // }
+                            // 💥 удалить комнату после короткой задержки
+                            setTimeout(() => {
+                                rooms.delete(room.id);
 
-                        // if (draw) {
-                        //     room.status = "FINISHED";
+                                broadcast({
+                                    type: "ROOM_DELETED",
+                                    payload: { id: room.id }
+                                });
+                            }, 2000);
 
-                        //     broadcastToRoom(room, {
-                        //         type: "GAME_FINISHED",
-                        //         payload: {
-                        //             winner: null,
-                        //             board: room.board
-                        //         }
-                        //     });
+                            return;
+                        }
 
-                        //     return;
-                        // }
+                        if (isDraw(room.board)) {
+                            room.status = "FINISHED";
+
+                            broadcastToRoom(room, {
+                                type: "GAME_FINISHED",
+                                payload: {
+                                    winner: null,
+                                    board: room.board
+                                }
+                            });
+
+                            setTimeout(() => {
+                                rooms.delete(room.id);
+
+                                broadcast({
+                                    type: "ROOM_DELETED",
+                                    payload: { id: room.id }
+                                });
+                            }, 2000);
+
+                            return;
+                        }
 
                         // смена хода
                         const [p1, p2] = room.players;
@@ -337,7 +356,8 @@ const server = net.createServer((socket) => {
                             type: "GAME_UPDATE",
                             payload: {
                                 board: room.board,
-                                turn: room.turn
+                                turn: room.turn,
+                                status: room.status
                             }
                         });
 

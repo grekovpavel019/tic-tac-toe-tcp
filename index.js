@@ -170,6 +170,8 @@ window.api.onMessage((msg) => {
             if (msg.payload.status === "PLAYING" && gameBoard.style.display !== "grid") {
                 gameBoard.style.display = "grid";
                 initBoard();
+
+                inRoom.turn = (msg.payload.turn === userName);
             }
             updateBoard(msg.payload.board);
 
