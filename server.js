@@ -516,14 +516,15 @@ function handleDisconnect(socket, err) {
 
         // если владелец вышел (вне игры)
         if (room.owner === userName) {
-            rooms.delete(id);
 
-            broadcastToRoom({
+            broadcastToRoom(room, {
                 type: "ROOM_CLOSED",
                 payload: {
                     reason: "Хост распустил комнату"
                 }
-            })
+            });
+
+            rooms.delete(id);
 
             broadcast({
                 type: "ROOM_DELETED",
@@ -539,6 +540,8 @@ function handleDisconnect(socket, err) {
                 type: "ROOM_UPDATED",
                 payload: { room }
             });
+
+            
         }
     }
 

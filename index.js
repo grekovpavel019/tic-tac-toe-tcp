@@ -41,7 +41,7 @@ const getRooms = document.getElementById("get-rooms");
 const disconnectButton = document.getElementById("disconnect");
 
 let userName = null;
-let created = true;
+let author = false;
 let inRoom = {
     state: false,
     id: null,
@@ -218,6 +218,7 @@ window.api.onMessage((msg) => {
             const { roomId, board } = msg.payload;
 
             gameBoard.style.display = "grid";
+            leaveRoomBtn.style.display = "none";
 
             onReadyBtn.style.display = "none";
 
@@ -365,7 +366,7 @@ function hideAlert() {
 
 // обработка кнопки нажатия на создание комнаты
 createRoomBtn.addEventListener("click", (event) => {
-    if (inRoom.state) return;
+    if (inRoom.state || author) return;
 
     showModalWindow();
 });
@@ -498,6 +499,10 @@ function leaveFromRoom() {
     inRoom.role = null;
     inRoom.mode = null;
     inRoom.turn = false;
+
+    leaveRoomBtn.style.display = "block";
+
+    author = false;
 
     isReady = false;
     onReadyBtn.disabled = false;
