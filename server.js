@@ -314,6 +314,8 @@ const server = net.createServer((socket) => {
 
                             // 💥 удалить комнату после короткой задержки
                             setTimeout(() => {
+                                if (!rooms.has(room.id)) return;
+
                                 rooms.delete(room.id);
 
                                 broadcast({
@@ -337,6 +339,8 @@ const server = net.createServer((socket) => {
                             });
 
                             setTimeout(() => {
+                                if (!rooms.has(room.id)) return;
+
                                 rooms.delete(room.id);
 
                                 broadcast({
@@ -349,6 +353,8 @@ const server = net.createServer((socket) => {
                         }
 
                         // смена хода
+                        if (room.players.length < 2) return;
+
                         const [p1, p2] = room.players;
                         room.turn = room.turn === p1 ? p2 : p1;
 

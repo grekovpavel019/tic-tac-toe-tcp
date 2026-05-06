@@ -205,12 +205,6 @@ window.api.onMessage((msg) => {
                 playerRole.textContent = `Ваша роль: ${"Нолик"}`
             }
 
-            if (isYourTurn) {
-                playerRole.textContent += " Ваш ХОД"
-            } else {
-                playerRole.textContent += " Ожидайте"
-            }
-
             break;
         }
 
@@ -243,11 +237,16 @@ window.api.onMessage((msg) => {
 
             updateBoard(board);
 
-            if (winner === inRoom.role) {
-                createAlertMessage("Вы победили");
+            if (inRoom.mode === "PLAYER") {
+                if (winner === inRoom.role) {
+                    createAlertMessage("Вы победили");
+                } else {
+                    createAlertMessage("Вы проиграли");
+                } 
+
             } else {
-                createAlertMessage("Вы проиграли");
-            } 
+                createAlertMessage(`Победил: ${winner === "X" ? "крестик" : "нолик"}`);
+            }
             
             if (winner === "draw"){
                 createAlertMessage("Ничья");
@@ -259,6 +258,8 @@ window.api.onMessage((msg) => {
         }
 
         case "ROOM_CLOSED": {
+            if (inRoom.id !== msg.pyaload.id) return;
+
             createAlertMessage(msg.payload.reason);
             leaveFromRoom();
             break;
