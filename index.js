@@ -7,6 +7,7 @@ const userNameField = document.querySelector(".username");
 
 const noRoom = document.getElementById("no-room");
 const alertMess = document.getElementById("alert-message");
+const alertBg = document.getElementById("alert-bg");
 const roomContent = document.getElementById("room-content");
 
 const leaveRoomBtn = document.getElementById("leave-room");
@@ -40,6 +41,7 @@ const getRooms = document.getElementById("get-rooms");
 const disconnectButton = document.getElementById("disconnect");
 
 let userName = null;
+let created = true;
 let inRoom = {
     state: false,
     id: null,
@@ -130,6 +132,9 @@ window.api.onMessage((msg) => {
         }
 
         case "LEAVE_SUCCESS": {
+            showNoRoom();
+            hideRoomContent();
+            inRoom.state = false;
             leaveFromRoom();
 
             break;
@@ -232,18 +237,31 @@ window.api.onMessage((msg) => {
             break;
         }
 
-        // case "READY_UPDATE": {
-        //     const { roomId, ready } = msg.payload;
+        case "GAME_FINISHED": {
+            const { board, winner } = msg.payload;
 
-        //     if (roomId !== inRoom.id) return;
+            updateBoard(board);
 
-        //     const el = document.querySelector(".players-on-ready");
-        //     el.textContent = `Готово: ${ready.length}/2`;
-
-        //     // onReadyBtn.style.display = "none";
+            if (winner === inRoom.role) {
+                createAlertMessage("Вы победили");
+            } else {
+                createAlertMessage("Вы проиграли");
+            } 
             
-        //     break;
-        // }
+            if (winner === "draw"){
+                createAlertMessage("Ничья");
+            }
+
+            console.log(inRoom);
+
+            break;
+        }
+
+        case "ROOM_CLOSED": {
+            createAlertMessage(msg.payload.reason);
+            leaveFromRoom();
+            break;
+        }
     }
 });
 
@@ -332,6 +350,15 @@ function showNoRoom() {
 
 function hideNoRoom() {
     noRoom.style.display = "none";
+}
+
+function showAlert() {
+    alertBg.style.display = "flex";
+}
+
+function hideAlert() {
+    alertBg.style.display = "none";
+    alertMess.textContent = "";
 }
 
 // ---------------------- MODAL FLOW --------------------------
@@ -468,9 +495,14 @@ chatInput.addEventListener("submit", (event) => {
 function leaveFromRoom() {
     inRoom.state = false;
     inRoom.id = null;
+    inRoom.role = null;
+    inRoom.mode = null;
+    inRoom.turn = false;
 
     isReady = false;
     onReadyBtn.disabled = false;
+
+    gameBoard.style.display = "";
 
     playerRole.textContent = "Ваша роль: "
 
@@ -574,11 +606,11 @@ function createMessage(value, userName, mode) {
 }
 
 closeAlertBtn.addEventListener("click", (event) => {
-    document.getElementById("alert-bg").style.display = "none";
+    hideAlert();
 });
 
 function createAlertMessage(reason) {
-    document.getElementById("alert-bg").style.display = "flex";
+    showAlert();
 
     const title = document.createElement("h2");
     title.textContent = `${reason}`;

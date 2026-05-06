@@ -331,7 +331,7 @@ const server = net.createServer((socket) => {
                             broadcastToRoom(room, {
                                 type: "GAME_FINISHED",
                                 payload: {
-                                    winner: null,
+                                    winner: "draw",
                                     board: room.board
                                 }
                             });
@@ -477,51 +477,74 @@ function getUserMode(room, userName) {
 
 function handleDisconnect(socket, err) {
     const userName = socket.userName;
-
     if (!userName) return;
 
     for (const [id, room] of rooms) {
+
+        const wasPlayer = room.players.includes(userName);
+        const wasSpectator = room.spectators.includes(userName);
+
+        // удалить из игроков
+        room.players = room.players.filter(p => p !== userName);
+
+        // удалить из наблюдателей
+        room.spectators = room.spectators.filter(s => s !== userName);
+
+        room.ready = room.ready.filter(r => r !== userName);
+
+        if (room.status === "PLAYING" && wasPlayer) {
+            console.log("Игрок вышел во время игры → удаляем комнату");
+
+            // уведомить всех в комнате
+            broadcastToRoom(room, {
+                type: "ROOM_CLOSED",
+                payload: {
+                    reason: "Игрок покинул игру"
+                }
+            });
+
+            rooms.delete(id);
+
+            // обновить список комнат у всех
+            broadcast({
+                type: "ROOM_DELETED",
+                payload: { id }
+            });
+
+            continue;
+        }
+
+        // если владелец вышел (вне игры)
         if (room.owner === userName) {
             rooms.delete(id);
+
+            broadcastToRoom({
+                type: "ROOM_CLOSED",
+                payload: {
+                    reason: "Хост распустил комнату"
+                }
+            })
 
             broadcast({
                 type: "ROOM_DELETED",
                 payload: { id }
             });
 
+            continue;
         }
 
-        // удалить из игроков
-        const playerIndex = room.players.indexOf(userName);
-        if (playerIndex !== -1) {
-            room.players.splice(playerIndex, 1);
-        }
-
-        // удалить из наблюдателей
-        const spectatorIndex = room.spectators.indexOf(userName);
-        if (spectatorIndex !== -1) {
-            room.spectators.splice(spectatorIndex, 1);
-        }
-
-        const readyIndex = room.ready.indexOf(userName);
-        if (readyIndex !== -1) {
-            room.ready.splice(readyIndex, 1);
-        }
-
-        if (playerIndex !== -1 || spectatorIndex !== -1) {
+        // если просто вышел из комнаты
+        if (wasPlayer || wasSpectator) {
             broadcastToRoom(room, {
                 type: "ROOM_UPDATED",
-                payload: {
-                    room
-                }
+                payload: { room }
             });
         }
     }
 
-    if (clients.has(userName)) {
-        clients.delete(userName);
-        console.log(`Клиент ${userName} отключился по причине: ${err ? err : "Конец соединения"}`)
-    }
+    clients.delete(userName);
+
+    console.log(`Клиент ${userName} отключился: ${err || "ok"}`);
 }
 
 function broadcast(msg) {
